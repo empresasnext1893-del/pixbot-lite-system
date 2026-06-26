@@ -95,7 +95,8 @@ export default function AdminNew() {
   const [clientBalanceReason, setClientBalanceReason] = useState("");
   const [selectedClientForBalance, setSelectedClientForBalance] = useState<number | null>(null);
 
-  const isAdmin = isAuthenticated && user?.role === "admin";
+  const adminSessionQuery = trpc.adminAuth.checkAdminSession.useQuery();
+  const isAdmin = (isAuthenticated && user?.role === "admin") || adminSessionQuery.data === true;
 
   // Queries
   const statsQuery = trpc.admin.advancedStats.useQuery(undefined, { enabled: isAdmin, refetchInterval: 30_000 });

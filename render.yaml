@@ -3,7 +3,7 @@ services:
     name: pixbot-lite-system
     env: node
     plan: free
-    buildCommand: npm install --force
+    buildCommand: npm install --include=dev --force && npm run build
     startCommand: npm run start
     envVars:
       - key: DATABASE_URL

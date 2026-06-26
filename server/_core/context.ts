@@ -20,19 +20,8 @@ export async function createContext(
     user = null;
   }
 
-  // No sandbox, se não houver usuário, vamos injetar um admin para os testes
-  if (!user) {
-    user = {
-      id: 999,
-      openId: "admin-sandbox",
-      name: "Administrador Teste",
-      email: "admin@teste.com",
-      role: "admin",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      lastSignedIn: new Date(),
-    } as any;
-  }
+  // Injeção de admin removida por segurança. 
+  // O acesso deve ser feito apenas via sessão válida.
 
   return {
     req: opts.req,

@@ -1142,12 +1142,12 @@ export default function AdminNew() {
                       </div>
                       <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
                         <p className="text-xs text-muted-foreground font-bold mb-1">Saque Mínimo</p>
-                        <p className="text-lg font-bold text-foreground">R$ 20,00</p>
+                        <p className="text-lg font-bold text-foreground">R$ 10,00</p>
                       </div>
                       <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
-                        <p className="text-xs text-muted-foreground font-bold mb-1">Limite Diário</p>
-                        <p className="text-lg font-bold text-foreground">R$ 10.000,00</p>
-                        <p className="text-[10px] text-muted-foreground mt-1">Para novos clientes</p>
+                        <p className="text-xs text-muted-foreground font-bold mb-1">Limite Operação</p>
+                        <p className="text-lg font-bold text-foreground">R$ 1.000.000,00</p>
+                        <p className="text-[10px] text-muted-foreground mt-1">Limite de segurança</p>
                       </div>
                     </div>
                     <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">

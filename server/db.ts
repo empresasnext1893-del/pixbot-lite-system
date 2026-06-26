@@ -1,6 +1,7 @@
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
+import fs from "fs";
 import { InsertUser, clientAccounts, transactions, users, wallets } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -25,15 +26,12 @@ export async function getDb() {
       const database = url.pathname.substring(1);
       const sslParam = url.searchParams.get("ssl");
 
-      let sslOptions = undefined;
+      let sslEnabled = false;
       if (sslParam) {
         try {
           const parsedSsl = JSON.parse(sslParam);
           if (parsedSsl.rejectUnauthorized === true) {
-            sslOptions = {
-              rejectUnauthorized: true,
-              ca: process.env.MYSQL_ATTR_SSL_CA || undefined, // Use a specific CA if provided, otherwise rely on system CAs
-            };
+            sslEnabled = true;
           }
         } catch (e) {
           console.warn("[Database] Could not parse SSL parameter from DATABASE_URL:", e);
@@ -46,7 +44,7 @@ export async function getDb() {
         user,
         password,
         database,
-        ssl: sslOptions,
+        ssl: sslEnabled ? { rejectUnauthorized: true, ca: fs.readFileSync('/etc/ssl/certs/ca-certificates.crt') } : undefined,
       }));
     } catch (error) {
       console.error("[Database] Failed to connect:", error);

@@ -1,0 +1,30 @@
+
+> pixbot-system@1.0.0 start
+> NODE_ENV=production node dist/index.js
+
+[OAuth] Initialized with baseURL: 
+[OAuth] ERROR: OAUTH_SERVER_URL is not configured! Set OAUTH_SERVER_URL environment variable.
+[Telegram] Polling iniciado...
+[Database] Attempting to connect with DATABASE_URL (first 10 chars): mysql://2K
+Port 3000 is busy, using port 3002 instead
+Server running on http://localhost:3002/
+[Telegram] Webhook disabled, using Polling.
+[Settings] Could not load fee settings: DrizzleQueryError: Failed query: select `id`, `key`, `value`, `updatedAt` from `settings` where `settings`.`key` = ? limit ?
+params: deposit_fee_percent,1
+    at MySql2PreparedQuery.queryWithCache (file:///home/ubuntu/pixbot-lite-system/node_modules/.pnpm/drizzle-orm@0.44.7_mysql2@3.22.5_@types+node@24.13.2_/node_modules/drizzle-orm/mysql-core/session.js:25:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async MySql2PreparedQuery.execute (file:///home/ubuntu/pixbot-lite-system/node_modules/.pnpm/drizzle-orm@0.44.7_mysql2@3.22.5_@types+node@24.13.2_/node_modules/drizzle-orm/mysql2/session.js:78:20)
+    at async getSetting (file:///home/ubuntu/pixbot-lite-system/dist/index.js:453:18)
+    at async loadFeeSettings (file:///home/ubuntu/pixbot-lite-system/dist/index.js:1256:16) {
+  query: 'select `id`, `key`, `value`, `updatedAt` from `settings` where `settings`.`key` = ? limit ?',
+  params: [ 'deposit_fee_percent', 1 ],
+  cause: Error: unable to get local issuer certificate
+      at file:///home/ubuntu/pixbot-lite-system/node_modules/.pnpm/drizzle-orm@0.44.7_mysql2@3.22.5_@types+node@24.13.2_/node_modules/drizzle-orm/mysql2/session.js:79:27
+      at MySql2PreparedQuery.queryWithCache (file:///home/ubuntu/pixbot-lite-system/node_modules/.pnpm/drizzle-orm@0.44.7_mysql2@3.22.5_@types+node@24.13.2_/node_modules/drizzle-orm/mysql-core/session.js:23:22)
+      at MySql2PreparedQuery.execute (file:///home/ubuntu/pixbot-lite-system/node_modules/.pnpm/drizzle-orm@0.44.7_mysql2@3.22.5_@types+node@24.13.2_/node_modules/drizzle-orm/mysql2/session.js:78:31)
+      at MySqlSelectBase.execute (file:///home/ubuntu/pixbot-lite-system/node_modules/.pnpm/drizzle-orm@0.44.7_mysql2@3.22.5_@types+node@24.13.2_/node_modules/drizzle-orm/mysql-core/query-builders/select.js:805:27)
+      at MySqlSelectBase.then (file:///home/ubuntu/pixbot-lite-system/node_modules/.pnpm/drizzle-orm@0.44.7_mysql2@3.22.5_@types+node@24.13.2_/node_modules/drizzle-orm/query-promise.js:21:17) {
+    code: 'HANDSHAKE_SSL_ERROR',
+    fatal: true
+  }
+}

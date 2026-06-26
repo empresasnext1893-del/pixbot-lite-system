@@ -135,12 +135,22 @@ export async function updateClientLastLogin(id: number) {
 
 export async function getAllClients(limit = 300) {
   const db = await getDb();
-  if (!db) return [];
-  return db
-    .select()
-    .from(clientAccounts)
-    .orderBy(desc(clientAccounts.createdAt))
-    .limit(limit);
+  if (!db) {
+    console.error("[Database] getAllClients failed: DB not available");
+    return [];
+  }
+  try {
+    const clients = await db
+      .select()
+      .from(clientAccounts)
+      .orderBy(desc(clientAccounts.createdAt))
+      .limit(limit);
+    console.log(`[Database] getAllClients success: found ${clients.length} clients`);
+    return clients;
+  } catch (error) {
+    console.error("[Database] getAllClients error:", error);
+    return [];
+  }
 }
 
 // ── Wallets ──────────────────────────────────────────────────────────────────

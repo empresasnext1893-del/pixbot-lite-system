@@ -148,7 +148,6 @@ init_schema();
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
-import fs from "fs";
 
 // server/_core/env.ts
 var ENV = {
@@ -168,39 +167,28 @@ var _db = null;
 async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      console.log("[Database] Attempting to connect with DATABASE_URL (first 10 chars):", process.env.DATABASE_URL?.substring(0, 10));
       const dbUrl = process.env.DATABASE_URL;
-      if (!dbUrl) {
-        console.error("[Database] DATABASE_URL is not defined.");
-        _db = null;
-        return _db;
-      }
       const url = new URL(dbUrl);
       const host = url.hostname;
       const port = parseInt(url.port || "3306");
       const user = url.username;
       const password = url.password;
       const database = url.pathname.substring(1);
-      const sslParam = url.searchParams.get("ssl");
-      let sslEnabled = false;
-      if (sslParam) {
-        try {
-          const parsedSsl = JSON.parse(sslParam);
-          if (parsedSsl.rejectUnauthorized === true) {
-            sslEnabled = true;
-          }
-        } catch (e) {
-          console.warn("[Database] Could not parse SSL parameter from DATABASE_URL:", e);
-        }
-      }
-      _db = drizzle(mysql.createPool({
+      const isTiDB = host.includes("tidbcloud.com");
+      const sslConfig = isTiDB ? { rejectUnauthorized: true } : void 0;
+      console.log(`[Database] Connecting to ${host} (TiDB: ${isTiDB}, SSL: ${!!sslConfig})`);
+      const pool = mysql.createPool({
         host,
         port,
         user,
         password,
         database,
-        ssl: sslEnabled ? { rejectUnauthorized: true, ca: fs.readFileSync("/etc/ssl/certs/ca-certificates.crt") } : void 0
-      }));
+        ssl: sslConfig,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0
+      });
+      _db = drizzle(pool);
     } catch (error) {
       console.error("[Database] Failed to connect:", error);
       _db = null;
@@ -268,8 +256,18 @@ async function updateClientLastLogin(id) {
 }
 async function getAllClients(limit = 300) {
   const db = await getDb();
-  if (!db) return [];
-  return db.select().from(clientAccounts).orderBy(desc(clientAccounts.createdAt)).limit(limit);
+  if (!db) {
+    console.error("[Database] getAllClients failed: DB not available");
+    return [];
+  }
+  try {
+    const clients = await db.select().from(clientAccounts).orderBy(desc(clientAccounts.createdAt)).limit(limit);
+    console.log(`[Database] getAllClients success: found ${clients.length} clients`);
+    return clients;
+  } catch (error) {
+    console.error("[Database] getAllClients error:", error);
+    return [];
+  }
 }
 async function createWallet(clientId) {
   const db = await getDb();
@@ -1014,7 +1012,7 @@ var systemRouter = router({
 
 // server/telegram.ts
 import https from "https";
-import fs2 from "fs";
+import fs from "fs";
 import path from "path";
 import { exec } from "child_process";
 import { promisify } from "util";
@@ -1123,12 +1121,12 @@ async function sendTelegramReceipt(chatId, txData) {
     const cmd = `python3 "${pythonScript}" "${txData.type}" "${txData.id}" "${txData.amount}" "${txData.date}" "${txData.status}" "${txData.pixKey || ""}" "${txData.clientName || ""}"`;
     const { stdout } = await execAsync(cmd);
     const imagePath = stdout.trim();
-    if (!fs2.existsSync(imagePath)) {
+    if (!fs.existsSync(imagePath)) {
       throw new Error("Receipt image was not generated");
     }
     const boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
     const filename = path.basename(imagePath);
-    const fileData = fs2.readFileSync(imagePath);
+    const fileData = fs.readFileSync(imagePath);
     const postData = `--${boundary}\r
 Content-Disposition: form-data; name="chat_id"\r
 \r
@@ -1156,7 +1154,7 @@ Content-Type: image/png\r
       });
       res.on("end", () => {
         try {
-          fs2.unlinkSync(imagePath);
+          fs.unlinkSync(imagePath);
         } catch (e) {
         }
       });
@@ -1804,7 +1802,7 @@ async function createContext(opts) {
 
 // server/_core/vite.ts
 import express from "express";
-import fs4 from "fs";
+import fs3 from "fs";
 import { nanoid } from "nanoid";
 import path3 from "path";
 import { createServer as createViteServer } from "vite";
@@ -1813,7 +1811,7 @@ import { createServer as createViteServer } from "vite";
 import { jsxLocPlugin } from "@builder.io/vite-plugin-jsx-loc";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import fs3 from "node:fs";
+import fs2 from "node:fs";
 import path2 from "node:path";
 import { defineConfig } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
@@ -1822,16 +1820,16 @@ var LOG_DIR = path2.join(PROJECT_ROOT, ".manus-logs");
 var MAX_LOG_SIZE_BYTES = 1 * 1024 * 1024;
 var TRIM_TARGET_BYTES = Math.floor(MAX_LOG_SIZE_BYTES * 0.6);
 function ensureLogDir() {
-  if (!fs3.existsSync(LOG_DIR)) {
-    fs3.mkdirSync(LOG_DIR, { recursive: true });
+  if (!fs2.existsSync(LOG_DIR)) {
+    fs2.mkdirSync(LOG_DIR, { recursive: true });
   }
 }
 function trimLogFile(logPath, maxSize) {
   try {
-    if (!fs3.existsSync(logPath) || fs3.statSync(logPath).size <= maxSize) {
+    if (!fs2.existsSync(logPath) || fs2.statSync(logPath).size <= maxSize) {
       return;
     }
-    const lines = fs3.readFileSync(logPath, "utf-8").split("\n");
+    const lines = fs2.readFileSync(logPath, "utf-8").split("\n");
     const keptLines = [];
     let keptBytes = 0;
     const targetSize = TRIM_TARGET_BYTES;
@@ -1842,7 +1840,7 @@ function trimLogFile(logPath, maxSize) {
       keptLines.unshift(lines[i]);
       keptBytes += lineBytes;
     }
-    fs3.writeFileSync(logPath, keptLines.join("\n"), "utf-8");
+    fs2.writeFileSync(logPath, keptLines.join("\n"), "utf-8");
   } catch {
   }
 }
@@ -1854,7 +1852,7 @@ function writeToLogFile(source, entries) {
     const ts = (/* @__PURE__ */ new Date()).toISOString();
     return `[${ts}] ${JSON.stringify(entry)}`;
   });
-  fs3.appendFileSync(logPath, `${lines.join("\n")}
+  fs2.appendFileSync(logPath, `${lines.join("\n")}
 `, "utf-8");
   trimLogFile(logPath, MAX_LOG_SIZE_BYTES);
 }
@@ -1982,7 +1980,7 @@ async function setupVite(app, server) {
         "client",
         "index.html"
       );
-      let template = await fs4.promises.readFile(clientTemplate, "utf-8");
+      let template = await fs3.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`
@@ -1997,7 +1995,7 @@ async function setupVite(app, server) {
 }
 function serveStatic(app) {
   const distPath = process.env.NODE_ENV === "development" ? path3.resolve(import.meta.dirname, "../..", "dist", "public") : path3.resolve(import.meta.dirname, "public");
-  if (!fs4.existsSync(distPath)) {
+  if (!fs3.existsSync(distPath)) {
     console.error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );

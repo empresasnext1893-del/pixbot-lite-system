@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/HomeNew";
 import Admin from "./pages/AdminNew";
+import AdminLogin from "./pages/AdminLogin";
 import AuthPage from "./pages/AuthPage";
 import WalletPage from "./pages/WalletPage";
 
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/wallet" component={WalletPage} />
+      <Route path="/admin-login" component={AdminLogin} />
       <Route path="/admin" component={Admin} />
       
       {/* Rotas de Integração do Telegram */}

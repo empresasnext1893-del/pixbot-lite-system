@@ -41,10 +41,15 @@ import { sendTelegramNotification, sendTelegramReceipt } from "./telegram";
 import { ENV } from "./_core/env";
 import { SignJWT, jwtVerify } from "jose";
 import { createHash } from "crypto";
+import { TRPCError } from "@trpc/server";
+import { getDb } from "./db";
+import { eq, desc } from "drizzle-orm";
+import { clientAccounts } from "../drizzle/schema";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const CLIENT_COOKIE = "pix_client_session";
+const ADMIN_COOKIE = "pix_admin_session";
 
 function hashPassword(password: string): string {
   return createHash("sha256").update(password + "pix_salt_2024").digest("hex");
@@ -79,11 +84,35 @@ async function verifyClientJwt(token: string): Promise<number | null> {
   }
 }
 
+async function signAdminJwt(): Promise<string> {
+  const secret = new TextEncoder().encode(ENV.cookieSecret);
+  return new SignJWT({ type: "admin", iat: Date.now() })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("7d")
+    .sign(secret);
+}
+
+async function verifyAdminJwt(token: string): Promise<boolean> {
+  try {
+    const secret = new TextEncoder().encode(ENV.cookieSecret);
+    const { payload } = await jwtVerify(token, secret);
+    return payload.type === "admin";
+  } catch {
+    return false;
+  }
+}
+
   // ── Admin procedure ───────────────────────────────────────────────────────────
 
-const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  // Backdoor temporário para testes no sandbox: qualquer usuário autenticado ou se não houver usuário, permitir para teste
-  // Em produção, deve-se usar: if (ctx.user?.role !== "admin")
+const adminProcedure = publicProcedure.use(async ({ ctx, next }) => {
+  const token = ctx.req.cookies?.[ADMIN_COOKIE];
+  if (!token) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão de administrador não encontrada." });
+  }
+  const isValid = await verifyAdminJwt(token);
+  if (!isValid) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão de administrador inválida ou expirada." });
+  }
   return next({ ctx });
 });
 
@@ -185,6 +214,43 @@ function calcDepositFee(amount: number) {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
+    }),
+  }),
+
+  // ── Admin Auth (Master Password) ──────────────────────────────────────────
+  adminAuth: router({
+    loginWithPassword: publicProcedure
+      .input(z.object({ password: z.string().min(1) }))
+      .mutation(async ({ input, ctx }) => {
+        if (input.password !== ENV.adminMasterPassword) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Senha de administrador incorreta." });
+        }
+        const token = await signAdminJwt();
+        ctx.res.cookie(ADMIN_COOKIE, token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+          path: "/",
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+        return { success: true };
+      }),
+
+    logoutAdmin: publicProcedure.mutation(({ ctx }) => {
+      ctx.res.clearCookie(ADMIN_COOKIE, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+        maxAge: -1,
+      });
+      return { success: true };
+    }),
+
+    checkAdminSession: publicProcedure.query(async ({ ctx }) => {
+      const token = ctx.req.cookies?.[ADMIN_COOKIE];
+      if (!token) return false;
+      return await verifyAdminJwt(token);
     }),
   }),
 

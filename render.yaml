@@ -3,8 +3,8 @@ services:
     name: pixbot-lite-system
     env: node
     plan: free
-    buildCommand: npm install --legacy-peer-deps && npm run build
-    startCommand: npm run start
+    buildCommand: corepack enable && pnpm install --no-frozen-lockfile && pnpm run build
+    startCommand: pnpm run start
     envVars:
       - key: DATABASE_URL
         value: mysql://2KmX4wgEXs3QV3p.root:enhteRt3raZMyZMM@gateway01.us-east-1.prod.aws.tidbcloud.com:4000/test?ssl={"rejectUnauthorized":true}

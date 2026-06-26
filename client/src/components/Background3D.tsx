@@ -1,0 +1,199 @@
+import { useEffect, useRef } from "react";
+
+const MONEY_BG_URL = "/assets/money_bg.png";
+
+export default function Background3D() {
+  const mountRef = useRef<HTMLDivElement>(null);
+  const animRef = useRef<number | null>(null);
+  const stateRef = useRef({
+    mouseX: 0, mouseY: 0,
+    targetX: 0, targetY: 0,
+    time: 0,
+  });
+
+  useEffect(() => {
+    const mount = mountRef.current;
+    if (!mount) return;
+
+    // Captura movimento do mouse para paralaxe
+    const handleMouseMove = (e: MouseEvent) => {
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      stateRef.current.targetX = (e.clientX - cx) / cx;
+      stateRef.current.targetY = (e.clientY - cy) / cy;
+    };
+
+    // Loop de animação
+    const animate = () => {
+      const s = stateRef.current;
+      s.time += 0.008;
+
+      // Lerp suave do mouse
+      s.mouseX += (s.targetX - s.mouseX) * 0.035;
+      s.mouseY += (s.targetY - s.mouseY) * 0.035;
+
+      // Paralaxe + flutuação na imagem de fundo
+      const bgEl = mount.querySelector(".bg-image") as HTMLElement | null;
+      if (bgEl) {
+        const floatX = Math.sin(s.time * 0.4) * 6;
+        const floatY = Math.cos(s.time * 0.25) * 4;
+        const px = s.mouseX * 20 + floatX;
+        const py = s.mouseY * 14 + floatY;
+        bgEl.style.transform = `scale(1.15) translate(${px}px, ${py}px)`;
+      }
+
+      // Notas de dinheiro flutuantes
+      const notes = mount.querySelectorAll(".money-note") as NodeListOf<HTMLElement>;
+      notes.forEach((note, i) => {
+        const speed = 0.35 + i * 0.12;
+        const phase = i * 1.4;
+        const tx = Math.sin(s.time * speed + phase) * 18;
+        const ty = Math.cos(s.time * speed * 0.65 + phase) * 14;
+        const rot = Math.sin(s.time * 0.4 + phase) * 12;
+        const scale = 0.9 + Math.sin(s.time * 0.5 + phase) * 0.1;
+        note.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(${scale})`;
+      });
+
+      // Partículas de brilho
+      const sparks = mount.querySelectorAll(".spark") as NodeListOf<HTMLElement>;
+      sparks.forEach((spark, i) => {
+        const speed = 0.6 + i * 0.2;
+        const phase = i * 2.1;
+        const ty = Math.sin(s.time * speed + phase) * 30;
+        const opacity = 0.3 + Math.sin(s.time * speed + phase) * 0.3;
+        spark.style.transform = `translateY(${ty}px)`;
+        spark.style.opacity = String(Math.max(0, opacity));
+      });
+
+      animRef.current = requestAnimationFrame(animate);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    animRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      if (animRef.current) cancelAnimationFrame(animRef.current);
+    };
+  }, []);
+
+  // Posições das notas decorativas
+  const notePositions = [
+    { left: "5%",  top: "12%", opacity: 0.18, size: 28 },
+    { left: "88%", top: "8%",  opacity: 0.14, size: 22 },
+    { left: "3%",  top: "55%", opacity: 0.12, size: 20 },
+    { left: "92%", top: "45%", opacity: 0.16, size: 26 },
+    { left: "15%", top: "80%", opacity: 0.10, size: 18 },
+    { left: "80%", top: "75%", opacity: 0.13, size: 24 },
+    { left: "50%", top: "5%",  opacity: 0.08, size: 16 },
+    { left: "70%", top: "20%", opacity: 0.11, size: 20 },
+  ];
+
+  const sparkPositions = [
+    { left: "20%", top: "30%", size: 4 },
+    { left: "60%", top: "15%", size: 3 },
+    { left: "40%", top: "60%", size: 5 },
+    { left: "75%", top: "50%", size: 3 },
+    { left: "10%", top: "70%", size: 4 },
+    { left: "85%", top: "30%", size: 3 },
+  ];
+
+  return (
+    <div
+      ref={mountRef}
+      className="fixed inset-0 overflow-hidden pointer-events-none"
+      style={{ zIndex: 0 }}
+    >
+      {/* Imagem de fundo com paralaxe */}
+      <div
+        className="bg-image absolute will-change-transform"
+        style={{
+          inset: "-8%",
+          backgroundImage: `url(${MONEY_BG_URL})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          transition: "transform 0.05s linear",
+        }}
+      />
+
+      {/* Overlay escuro profissional — garante legibilidade do texto */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(180deg, oklch(0.06 0.02 250 / 0.50) 0%, oklch(0.07 0.02 250 / 0.40) 35%, oklch(0.07 0.02 250 / 0.48) 70%, oklch(0.06 0.02 250 / 0.60) 100%)",
+        }}
+      />
+
+      {/* Brilho azul neon no topo (identidade visual) */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 100% 45% at 50% 0%, oklch(0.35 0.16 250 / 0.40) 0%, transparent 65%)",
+        }}
+      />
+
+      {/* Brilho lateral esquerdo */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 40% 60% at 0% 50%, oklch(0.30 0.14 250 / 0.20) 0%, transparent 70%)",
+        }}
+      />
+
+      {/* Notas de dinheiro flutuantes decorativas */}
+      {notePositions.map((pos, i) => (
+        <div
+          key={i}
+          className="money-note absolute will-change-transform select-none"
+          style={{
+            left: pos.left,
+            top: pos.top,
+            opacity: pos.opacity,
+            fontSize: `${pos.size}px`,
+            filter: "blur(0.3px) drop-shadow(0 0 8px oklch(0.65 0.18 80 / 0.6))",
+            pointerEvents: "none",
+            zIndex: 1,
+          }}
+        >
+          💵
+        </div>
+      ))}
+
+      {/* Partículas de brilho */}
+      {sparkPositions.map((pos, i) => (
+        <div
+          key={i}
+          className="spark absolute will-change-transform rounded-full"
+          style={{
+            left: pos.left,
+            top: pos.top,
+            width: `${pos.size}px`,
+            height: `${pos.size}px`,
+            background: "radial-gradient(circle, oklch(0.75 0.22 250) 0%, transparent 70%)",
+            boxShadow: "0 0 10px oklch(0.65 0.22 250 / 0.8)",
+            opacity: 0.4,
+            pointerEvents: "none",
+            zIndex: 1,
+          }}
+        />
+      ))}
+
+      {/* Grade de linhas sutis no fundo */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `
+            linear-gradient(oklch(0.40 0.10 250 / 0.06) 1px, transparent 1px),
+            linear-gradient(90deg, oklch(0.40 0.10 250 / 0.06) 1px, transparent 1px)
+          `,
+          backgroundSize: "60px 60px",
+          maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 0%, transparent 100%)",
+        }}
+      />
+    </div>
+  );
+}

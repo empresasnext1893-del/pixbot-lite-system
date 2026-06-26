@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1782004816006,
+      "tag": "0000_careless_captain_america",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1782004948379,
+      "tag": "0001_complex_justin_hammer",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1782171177016,
+      "tag": "0002_same_thanos",
+      "breakpoints": true
+    }
+  ]
+}

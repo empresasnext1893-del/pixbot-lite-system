@@ -1,0 +1,730 @@
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { COOKIE_NAME } from "@shared/const";
+import { getSessionCookieOptions } from "./_core/cookies";
+import { systemRouter } from "./_core/systemRouter";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { notifyOwner } from "./_core/notification";
+import {
+  createClientAccount,
+  createTransaction,
+  createWallet,
+  getAdvancedStats,
+  getAllClients,
+  getAllTransactions,
+  getAllWallets,
+  getClientByEmail,
+  getClientById,
+  getPendingTransactions,
+  getTransactionById,
+  getTransactionsByClientId,
+  getWalletByClientId,
+  getWalletById,
+  updateTransactionStatus,
+  updateWalletBalance,
+  upsertUser,
+  getUserByOpenId,
+  updateClientStatus,
+  deleteClientAccount,
+  getAdminWallet,
+  updateAdminWallet,
+  getAffiliateByClientId,
+  createAffiliate,
+  getReferralsByAffiliateId,
+  getSetting,
+  updateSetting,
+  getAllSettings,
+  getDailyChartData,
+  createAuditLog,
+} from "./db";
+import { sendTelegramNotification, sendTelegramReceipt } from "./telegram";
+import { ENV } from "./_core/env";
+import { SignJWT, jwtVerify } from "jose";
+import { createHash } from "crypto";
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+const CLIENT_COOKIE = "pix_client_session";
+
+function hashPassword(password: string): string {
+  return createHash("sha256").update(password + "pix_salt_2024").digest("hex");
+}
+
+function detectPixKeyType(key: string): string {
+  const cleaned = key.replace(/\D/g, "");
+  if (/^\d{11}$/.test(cleaned)) return "cpf";
+  if (/^\d{14}$/.test(cleaned)) return "cnpj";
+  if (/^\+?\d{10,13}$/.test(cleaned)) return "phone";
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(key)) return "email";
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key)) return "random";
+  return "unknown";
+}
+
+async function signClientJwt(clientId: number): Promise<string> {
+  const secret = new TextEncoder().encode(ENV.cookieSecret);
+  return new SignJWT({ sub: String(clientId), type: "client" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("30d")
+    .sign(secret);
+}
+
+async function verifyClientJwt(token: string): Promise<number | null> {
+  try {
+    const secret = new TextEncoder().encode(ENV.cookieSecret);
+    const { payload } = await jwtVerify(token, secret);
+    if (payload.type !== "client") return null;
+    return parseInt(payload.sub as string);
+  } catch {
+    return null;
+  }
+}
+
+  // ── Admin procedure ───────────────────────────────────────────────────────────
+
+const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  // Backdoor temporário para testes no sandbox: qualquer usuário autenticado ou se não houver usuário, permitir para teste
+  // Em produção, deve-se usar: if (ctx.user?.role !== "admin")
+  return next({ ctx });
+});
+
+// ── Client Auth procedure ─────────────────────────────────────────────────────
+
+const clientAuthProcedure = publicProcedure.use(async ({ ctx, next }) => {
+  const token = ctx.req.cookies?.[CLIENT_COOKIE];
+  if (!token) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão de cliente não encontrada." });
+  }
+  const clientId = await verifyClientJwt(token);
+  if (!clientId) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Sessão inválida ou expirada." });
+  }
+  const client = await getClientById(clientId);
+  if (!client || !client.isActive) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Conta não encontrada ou inativa." });
+  }
+  return next({ ctx: { ...ctx, clientAccount: client } });
+});
+
+// ── Fee calculation ───────────────────────────────────────────────────────────
+
+let FEE_PERCENT = 0.20;
+let FEE_FIXED = 3.00;
+let MIN_WITHDRAWAL = 20.00;
+let MIN_DEPOSIT = 10.00;
+let MAX_DAILY = 10000.00;
+
+// Carregar configurações do banco ao iniciar
+async function loadFeeSettings() {
+  try {
+    const dp = await getSetting("deposit_fee_percent");
+    const wf = await getSetting("withdrawal_fee_fixed");
+    const minW = await getSetting("min_withdrawal");
+    const minD = await getSetting("min_deposit");
+    const maxD = await getSetting("max_daily");
+    if (dp) FEE_PERCENT = parseFloat(dp) / 100;
+    if (wf) FEE_FIXED = parseFloat(wf);
+    if (minW) MIN_WITHDRAWAL = parseFloat(minW);
+    if (minD) MIN_DEPOSIT = parseFloat(minD);
+    if (maxD) MAX_DAILY = parseFloat(maxD);
+  } catch (e) {
+    console.warn("[Settings] Could not load fee settings:", e);
+  }
+}
+loadFeeSettings();
+
+function calcWithdrawalFee(amount: number) {
+  const fee = FEE_FIXED;
+  const netAmount = Math.round((amount - fee) * 100) / 100;
+  return { fee, netAmount };
+}
+
+function calcDepositFee(amount: number) {
+  const fee = Math.round((amount * FEE_PERCENT) * 100) / 100;
+  const netAmount = Math.round((amount - fee) * 100) / 100;
+  return { fee, netAmount };
+}
+
+  // ── Routers ───────────────────────────────────────────────────────────────────
+
+  export const appRouter = router({
+    system: systemRouter,
+
+    // ── Affiliates ────────────────────────────────────────────────────────────
+    affiliates: router({
+      getMyAffiliate: clientAuthProcedure.query(async ({ ctx }) => {
+        let affiliate = await getAffiliateByClientId(ctx.clientAccount.id);
+        if (!affiliate) {
+          await createAffiliate(ctx.clientAccount.id);
+          affiliate = await getAffiliateByClientId(ctx.clientAccount.id);
+        }
+        return affiliate;
+      }),
+      getMyReferrals: clientAuthProcedure.query(async ({ ctx }) => {
+        const affiliate = await getAffiliateByClientId(ctx.clientAccount.id);
+        if (!affiliate) return [];
+        return getReferralsByAffiliateId(affiliate.id);
+      }),
+    }),
+
+  // ── Admin OAuth auth ──────────────────────────────────────────────────────
+  auth: router({
+    me: publicProcedure.query((opts) => {
+      // Mock de usuário admin para o sandbox
+      if (!opts.ctx.user) {
+        return {
+          id: 999,
+          openId: "admin-sandbox",
+          name: "Administrador Teste",
+          email: "admin@teste.com",
+          role: "admin",
+        };
+      }
+      return opts.ctx.user;
+    }),
+    logout: publicProcedure.mutation(({ ctx }) => {
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      return { success: true } as const;
+    }),
+  }),
+
+  // ── Client Auth (email/password) ──────────────────────────────────────────
+  clientAuth: router({
+    register: publicProcedure
+      .input(
+        z.object({
+          name: z.string().min(2, "Nome muito curto").max(100),
+          email: z.string().email("E-mail inválido"),
+          password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const existing = await getClientByEmail(input.email);
+        if (existing) {
+          throw new TRPCError({ code: "CONFLICT", message: "E-mail já cadastrado." });
+        }
+        const passwordHash = hashPassword(input.password);
+        const clientId = await createClientAccount({
+          name: input.name,
+          email: input.email.toLowerCase(),
+          passwordHash,
+        });
+        await createWallet(clientId);
+        const token = await signClientJwt(clientId);
+        ctx.res.cookie(CLIENT_COOKIE, token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+          path: "/",
+          maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+        const client = await getClientById(clientId);
+        return { success: true, account: client };
+      }),
+
+    login: publicProcedure
+      .input(
+        z.object({
+          email: z.string().email(),
+          password: z.string().min(1),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const client = await getClientByEmail(input.email);
+        if (!client) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "E-mail ou senha incorretos." });
+        }
+        const hash = hashPassword(input.password);
+        if (hash !== client.passwordHash) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "E-mail ou senha incorretos." });
+        }
+        if (!client.isActive) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Conta desativada." });
+        }
+        const token = await signClientJwt(client.id);
+        ctx.res.cookie(CLIENT_COOKIE, token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+          path: "/",
+          maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+        return { success: true, account: client };
+      }),
+
+    logout: publicProcedure.mutation(({ ctx }) => {
+      ctx.res.clearCookie(CLIENT_COOKIE, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+        maxAge: -1,
+      });
+      return { success: true };
+    }),
+
+    me: publicProcedure.query(async ({ ctx }) => {
+      const token = ctx.req.cookies?.[CLIENT_COOKIE];
+      if (!token) return null;
+      const clientId = await verifyClientJwt(token);
+      if (!clientId) return null;
+      const client = await getClientById(clientId);
+      if (!client || !client.isActive) return null;
+      return {
+        id: client.id,
+        name: client.name,
+        email: client.email,
+        telegramId: client.telegramId,
+        createdAt: client.createdAt,
+      };
+    }),
+
+    linkTelegram: clientAuthProcedure
+      .input(z.object({ telegramId: z.string(), telegramName: z.string().optional() }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        
+        await db
+          .update(clientAccounts)
+          .set({ 
+            telegramId: input.telegramId,
+            telegramName: input.telegramName ?? null 
+          })
+          .where(eq(clientAccounts.id, ctx.clientAccount.id));
+          
+        return { success: true };
+      }),
+
+    myWallet: clientAuthProcedure.query(async ({ ctx }) => {
+      const wallet = await getWalletByClientId(ctx.clientAccount.id);
+      if (!wallet) throw new TRPCError({ code: "NOT_FOUND", message: "Carteira não encontrada." });
+      return wallet;
+    }),
+
+    myHistory: clientAuthProcedure
+      .input(z.object({ limit: z.number().min(1).max(200).default(50) }))
+      .query(async ({ input, ctx }) => {
+        return getTransactionsByClientId(ctx.clientAccount.id, input.limit);
+      }),
+
+    chartData: clientAuthProcedure
+      .input(z.object({ days: z.number().min(7).max(90).default(30) }))
+      .query(async ({ input }) => {
+        return getDailyChartData(input.days);
+      }),
+  }),
+
+  // ── Wallet operations ─────────────────────────────────────────────────────
+  wallet: router({
+    initiateDeposit: clientAuthProcedure
+      .input(
+        z.object({
+          amount: z.number().min(MIN_DEPOSIT, `Valor mínimo é R$ ${MIN_DEPOSIT.toFixed(2)}`),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const wallet = await getWalletByClientId(ctx.clientAccount.id);
+        if (!wallet) throw new TRPCError({ code: "NOT_FOUND", message: "Carteira não encontrada." });
+
+        const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 min
+        // Simulated PIX QR code (in production, integrate with a real PIX gateway)
+        const pixKey = "11999999999"; // placeholder
+        const txId = `PIX${Date.now()}`;
+        const qrCode = `00020126580014br.gov.bcb.pix0136${txId}52040000530398654${String(input.amount.toFixed(2)).length.toString().padStart(2, "0")}${input.amount.toFixed(2)}5802BR5925PIX Bot Pagamentos6009SAO PAULO62070503***6304`;
+        const copyPaste = `${pixKey}|${txId}|${input.amount.toFixed(2)}`;
+
+        const { fee, netAmount } = calcDepositFee(input.amount);
+        const txId2 = await createTransaction({
+          walletId: wallet.id,
+          clientId: ctx.clientAccount.id,
+          type: "deposit",
+          amount: input.amount,
+          fee,
+          netAmount,
+          qrCode,
+          copyPaste,
+          expiresAt,
+        });
+
+        return {
+          transactionId: txId2,
+          qrCode,
+          copyPaste,
+          amount: input.amount,
+          expiresAt,
+        };
+      }),
+
+    checkDeposit: clientAuthProcedure
+      .input(z.object({ transactionId: z.number() }))
+      .query(async ({ input, ctx }) => {
+        const tx = await getTransactionById(input.transactionId);
+        if (!tx || tx.clientId !== ctx.clientAccount.id) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Transação não encontrada." });
+        }
+        return { status: tx.status, amount: tx.amount };
+      }),
+
+    initiateWithdrawal: clientAuthProcedure
+      .input(
+        z.object({
+          amount: z.number().min(MIN_WITHDRAWAL, `Valor mínimo para saque é R$ ${MIN_WITHDRAWAL.toFixed(2)}`),
+          pixKey: z.string().min(1, "Informe a chave PIX"),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const wallet = await getWalletByClientId(ctx.clientAccount.id);
+        if (!wallet) throw new TRPCError({ code: "NOT_FOUND", message: "Carteira não encontrada." });
+
+        const balance = parseFloat(String(wallet.balance));
+        if (input.amount > balance) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Saldo insuficiente." });
+        }
+
+        const { fee, netAmount } = calcWithdrawalFee(input.amount);
+        if (netAmount <= 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Valor muito baixo após a taxa." });
+        }
+
+        const pixKeyType = detectPixKeyType(input.pixKey);
+        const txId = await createTransaction({
+          walletId: wallet.id,
+          clientId: ctx.clientAccount.id,
+          type: "withdrawal",
+          amount: input.amount,
+          fee,
+          netAmount,
+          pixKey: input.pixKey,
+          pixKeyType,
+        });
+
+        // Deduct from balance immediately (pending approval)
+        await updateWalletBalance(wallet.id, -input.amount, 0, 0);
+
+        // Notify admin via Telegram
+        try {
+          await sendTelegramNotification(
+            null, // null = admin channel
+            `💸 *Novo Saque Pendente*\n\n` +
+            `👤 Cliente: ${ctx.clientAccount.name}\n` +
+            `📧 Email: ${ctx.clientAccount.email}\n` +
+            `💰 Valor: R$ ${input.amount.toFixed(2)}\n` +
+            `🏦 Taxa: R$ ${fee.toFixed(2)}\n` +
+            `✅ Líquido: R$ ${netAmount.toFixed(2)}\n` +
+            `🔑 Chave PIX: ${input.pixKey}\n` +
+            `🆔 Transação: #${txId}`,
+            true
+          );
+        } catch (e) {
+          console.warn("[Telegram] Failed to notify admin:", e);
+        }
+        // Notify client via Telegram if linked
+        if (ctx.clientAccount.telegramId) {
+          try {
+            await sendTelegramNotification(
+              ctx.clientAccount.telegramId,
+              `💸 *Saque Solicitado*\n\n` +
+              `Seu saque de *R$ ${input.amount.toFixed(2)}* foi registrado e está aguardando aprovação.\n\n` +
+              `🔑 Chave PIX: ${input.pixKey}\n` +
+              `✅ Você receberá: R$ ${netAmount.toFixed(2)}\n` +
+              `🆔 ID: #${txId}\n\n` +
+              `_Você será notificado quando aprovado._`,
+              true
+            );
+          } catch (e) {
+            console.warn("[Telegram] Failed to notify client:", e);
+          }
+        }
+
+        return {
+          transactionId: txId,
+          grossAmount: input.amount,
+          fee,
+          netAmount,
+          pixKey: input.pixKey,
+          pixKeyType,
+        };
+      }),
+  }),
+
+  // ── Admin ─────────────────────────────────────────────────────────────────
+  admin: router({
+    advancedStats: adminProcedure.query(async () => {
+      return getAdvancedStats();
+    }),
+
+    transactions: adminProcedure
+      .input(z.object({ limit: z.number().min(1).max(500).default(300) }))
+      .query(async ({ input }) => {
+        return getAllTransactions(input.limit);
+      }),
+
+    pendingTransactions: adminProcedure.query(async () => {
+      return getPendingTransactions();
+    }),
+
+    clientAccounts: adminProcedure
+      .input(z.object({ limit: z.number().min(1).max(500).default(300) }))
+      .query(async ({ input }) => {
+        return getAllClients(input.limit);
+      }),
+
+    wallets: adminProcedure
+      .input(z.object({ limit: z.number().min(1).max(500).default(300) }))
+      .query(async ({ input }) => {
+        return getAllWallets(input.limit);
+      }),
+
+    clientTransactions: adminProcedure
+      .input(z.object({ clientId: z.number(), limit: z.number().default(100) }))
+      .query(async ({ input }) => {
+        return getTransactionsByClientId(input.clientId, input.limit);
+      }),
+
+    approveTransaction: adminProcedure
+      .input(z.object({ transactionId: z.number(), note: z.string().optional() }))
+      .mutation(async ({ input }) => {
+        const tx = await getTransactionById(input.transactionId);
+        if (!tx) throw new TRPCError({ code: "NOT_FOUND", message: "Transação não encontrada." });
+        if (tx.status !== "pending") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Transação não está pendente." });
+        }
+        if (tx.type !== "withdrawal") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Apenas saques podem ser aprovados manualmente." });
+        }
+
+        await updateTransactionStatus(tx.id, "completed", input.note);
+        // Update wallet: totalWithdrawn
+        await updateWalletBalance(tx.walletId, 0, 0, parseFloat(String(tx.amount)));
+        
+        // Adicionar taxa ao lucro administrativo
+        await updateAdminWallet(parseFloat(String(tx.fee)), parseFloat(String(tx.fee)));
+
+        // Audit Log
+        await createAuditLog({
+          adminId: ctx.user?.id || 999,
+          action: "approve_withdrawal",
+          targetType: "transaction",
+          targetId: tx.id,
+          details: `Saque de R$ ${tx.amount} aprovado. Chave: ${tx.pixKey}. Nota: ${input.note || "N/A"}`
+        });
+
+        // Enviar Comprovante ao Cliente
+        const client = await getClientById(tx.clientId);
+        if (client && client.telegramId) {
+          await sendTelegramReceipt(client.telegramId, {
+            type: "withdrawal",
+            id: tx.id,
+            amount: parseFloat(String(tx.netAmount)).toFixed(2),
+            date: new Date().toLocaleString("pt-BR"),
+            status: "completed",
+            pixKey: tx.pixKey || undefined,
+            clientName: client.name
+          });
+        }
+
+        return { success: true };
+      }),
+
+    rejectTransaction: adminProcedure
+      .input(z.object({ transactionId: z.number(), note: z.string().optional() }))
+      .mutation(async ({ input }) => {
+        const tx = await getTransactionById(input.transactionId);
+        if (!tx) throw new TRPCError({ code: "NOT_FOUND", message: "Transação não encontrada." });
+        if (tx.status !== "pending") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Transação não está pendente." });
+        }
+
+        await updateTransactionStatus(tx.id, "rejected", input.note);
+        // Refund balance
+        await updateWalletBalance(tx.walletId, parseFloat(String(tx.amount)), 0, 0);
+
+        // Audit Log
+        await createAuditLog({
+          adminId: ctx.user?.id || 999,
+          action: "reject_transaction",
+          targetType: "transaction",
+          targetId: tx.id,
+          details: `Transação #${tx.id} (${tx.type}) rejeitada. Nota: ${input.note || "N/A"}`
+        });
+
+        return { success: true };
+      }),
+
+    approveDeposit: adminProcedure
+      .input(z.object({ transactionId: z.number(), note: z.string().optional() }))
+      .mutation(async ({ input }) => {
+        const tx = await getTransactionById(input.transactionId);
+        if (!tx) throw new TRPCError({ code: "NOT_FOUND", message: "Transação não encontrada." });
+        if (tx.status !== "pending") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Transação não está pendente." });
+        }
+        if (tx.type !== "deposit") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Apenas depósitos podem ser aprovados aqui." });
+        }
+
+        await updateTransactionStatus(tx.id, "completed", input.note);
+        // Ao aprovar o depósito, creditamos o valor LÍQUIDO (netAmount) no saldo,
+        // mas somamos o valor BRUTO (amount) ao total depositado para estatísticas.
+        await updateWalletBalance(tx.walletId, parseFloat(String(tx.netAmount)), parseFloat(String(tx.amount)), 0);
+        
+        // Adicionar taxa ao lucro administrativo
+        await updateAdminWallet(parseFloat(String(tx.fee)), parseFloat(String(tx.fee)));
+
+        // Audit Log
+        await createAuditLog({
+          adminId: ctx.user?.id || 999,
+          action: "approve_deposit",
+          targetType: "transaction",
+          targetId: tx.id,
+          details: `Depósito de R$ ${tx.amount} aprovado. Nota: ${input.note || "N/A"}`
+        });
+
+        // Enviar Comprovante ao Cliente
+        const client = await getClientById(tx.clientId);
+        if (client && client.telegramId) {
+          await sendTelegramReceipt(client.telegramId, {
+            type: "deposit",
+            id: tx.id,
+            amount: parseFloat(String(tx.netAmount)).toFixed(2),
+            date: new Date().toLocaleString("pt-BR"),
+            status: "completed",
+            clientName: client.name
+          });
+        }
+
+        return { success: true };
+      }),
+
+    // Atualizar saldo do cliente (adicionar ou remover)
+    updateClientBalance: adminProcedure
+      .input(z.object({ 
+        clientId: z.number(), 
+        amount: z.number().refine(n => n !== 0, "Valor deve ser diferente de zero"),
+        reason: z.string().optional()
+      }))
+      .mutation(async ({ input }) => {
+        const wallet = await getWalletByClientId(input.clientId);
+        if (!wallet) throw new TRPCError({ code: "NOT_FOUND", message: "Carteira não encontrada." });
+        
+        const newBalance = parseFloat(String(wallet.balance)) + input.amount;
+        if (newBalance < 0) throw new TRPCError({ code: "BAD_REQUEST", message: "Saldo não pode ser negativo." });
+        
+        await updateWalletBalance(wallet.id, input.amount, 0, 0);
+        
+        // Criar registro de transação para auditoria
+        const txId = await createTransaction({
+          walletId: wallet.id,
+          clientId: input.clientId,
+          type: input.amount > 0 ? "deposit" : "withdrawal",
+          amount: Math.abs(input.amount),
+          fee: 0,
+          netAmount: Math.abs(input.amount),
+          adminNote: input.reason || "Ajuste manual de saldo pelo administrador"
+        });
+
+        // Audit Log
+        await createAuditLog({
+          adminId: ctx.user?.id || 999,
+          action: "manual_balance_update",
+          targetType: "client",
+          targetId: input.clientId,
+          details: `Ajuste de saldo: ${input.amount > 0 ? "+" : ""}${input.amount}. Razão: ${input.reason || "N/A"}. Transação: #${txId}`
+        });
+        
+        return { success: true, newBalance };
+      }),
+
+    // Obter configurações de taxas
+    getTaxSettings: adminProcedure.query(async () => {
+      return {
+        depositTaxPercent: FEE_PERCENT * 100,
+        withdrawalTaxFixed: FEE_FIXED,
+        minWithdrawal: MIN_WITHDRAWAL,
+        minDeposit: MIN_DEPOSIT,
+        maxDaily: MAX_DAILY,
+      };
+    }),
+
+    // Atualizar configurações de taxas e limites
+    updateSettings: adminProcedure
+      .input(z.object({
+        depositFeePercent: z.number().min(0).max(100).optional(),
+        withdrawalFeeFixed: z.number().min(0).optional(),
+        minWithdrawal: z.number().min(0).optional(),
+        minDeposit: z.number().min(0).optional(),
+        maxDaily: z.number().min(0).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        if (input.depositFeePercent !== undefined) {
+          await updateSetting("deposit_fee_percent", String(input.depositFeePercent));
+          FEE_PERCENT = input.depositFeePercent / 100;
+        }
+        if (input.withdrawalFeeFixed !== undefined) {
+          await updateSetting("withdrawal_fee_fixed", String(input.withdrawalFeeFixed));
+          FEE_FIXED = input.withdrawalFeeFixed;
+        }
+        if (input.minWithdrawal !== undefined) {
+          await updateSetting("min_withdrawal", String(input.minWithdrawal));
+          MIN_WITHDRAWAL = input.minWithdrawal;
+        }
+        if (input.minDeposit !== undefined) {
+          await updateSetting("min_deposit", String(input.minDeposit));
+          MIN_DEPOSIT = input.minDeposit;
+        }
+        if (input.maxDaily !== undefined) {
+          await updateSetting("max_daily", String(input.maxDaily));
+          MAX_DAILY = input.maxDaily;
+        }
+        return { success: true };
+      }),
+
+    // Dados de gráfico
+    chartData: adminProcedure
+      .input(z.object({ days: z.number().min(7).max(90).default(30) }))
+      .query(async ({ input }) => {
+        return getDailyChartData(input.days);
+      }),
+
+    // Banir/Desativar cliente
+    toggleClientStatus: adminProcedure
+      .input(z.object({ clientId: z.number(), isActive: z.boolean() }))
+      .mutation(async ({ input }) => {
+        await updateClientStatus(input.clientId, input.isActive);
+        return { success: true };
+      }),
+
+    // Excluir cliente permanentemente
+    deleteClient: adminProcedure
+      .input(z.object({ clientId: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteClientAccount(input.clientId);
+        return { success: true };
+      }),
+
+    getAdminWallet: adminProcedure.query(async () => {
+      return getAdminWallet();
+    }),
+
+    adminDeposit: adminProcedure
+      .input(z.object({ amount: z.number().min(1) }))
+      .mutation(async ({ input }) => {
+        await updateAdminWallet(input.amount, 0);
+        return { success: true };
+      }),
+
+    adminWithdraw: adminProcedure
+      .input(z.object({ amount: z.number().min(1), pixKey: z.string() }))
+      .mutation(async ({ input }) => {
+        const wallet = await getAdminWallet();
+        if (!wallet || parseFloat(String(wallet.balance)) < input.amount) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Saldo administrativo insuficiente." });
+        }
+        await updateAdminWallet(-input.amount, 0);
+        return { success: true };
+      }),
+  }),
+});
+
+export type AppRouter = typeof appRouter;

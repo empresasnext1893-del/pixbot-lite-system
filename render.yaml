@@ -9,6 +9,6 @@ services:
       - key: DATABASE_URL
         value: mysql://2KmX4wgEXs3QV3p.root:enhteRt3raZMyZMM@gateway01.us-east-1.prod.aws.tidbcloud.com:4000/test?ssl={"rejectUnauthorized":true}
       - key: NODE_ENV
-        production: true
+        value: production
       - key: PORT
         value: 10000

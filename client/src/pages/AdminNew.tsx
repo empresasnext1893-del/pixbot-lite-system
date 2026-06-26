@@ -658,7 +658,14 @@ export default function AdminNew() {
                             </div>
                             <div className="min-w-0">
                               <p className="text-sm font-medium text-foreground truncate">{client.name ?? "—"}</p>
-                              <p className="text-xs text-muted-foreground">ID: {client.id}</p>
+                              <div className="flex items-center gap-1.5">
+                                <p className="text-[10px] text-muted-foreground">ID: {client.id}</p>
+                                {client.lastLoginAt && (
+                                  <p className="text-[10px] px-1.5 py-0.5 rounded-sm bg-blue-500/10 text-blue-400 font-medium">
+                                    Visto: {new Date(client.lastLoginAt).toLocaleString("pt-BR", { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                  </p>
+                                )}
+                              </div>
                             </div>
                           </div>
 

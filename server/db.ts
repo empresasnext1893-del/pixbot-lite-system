@@ -96,6 +96,15 @@ export async function getClientById(id: number) {
   return result[0];
 }
 
+export async function updateClientLastLogin(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(clientAccounts)
+    .set({ lastLoginAt: new Date() })
+    .where(eq(clientAccounts.id, id));
+}
+
 export async function getAllClients(limit = 300) {
   const db = await getDb();
   if (!db) return [];
@@ -171,6 +180,7 @@ export async function createTransaction(data: {
   qrCode?: string;
   copyPaste?: string;
   expiresAt?: Date;
+  adminNote?: string;
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

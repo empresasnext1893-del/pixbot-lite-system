@@ -14,7 +14,7 @@ __export(schema_exports, {
   adminWallet: () => adminWallet,
   affiliates: () => affiliates,
   auditLogs: () => auditLogs,
-  clientAccounts: () => clientAccounts2,
+  clientAccounts: () => clientAccounts,
   referrals: () => referrals,
   settings: () => settings,
   transactions: () => transactions,
@@ -31,7 +31,7 @@ import {
   decimal,
   boolean
 } from "drizzle-orm/mysql-core";
-var users, clientAccounts2, wallets, transactions, affiliates, referrals, adminWallet, settings, auditLogs;
+var users, clientAccounts, wallets, transactions, affiliates, referrals, adminWallet, settings, auditLogs;
 var init_schema = __esm({
   "drizzle/schema.ts"() {
     "use strict";
@@ -46,7 +46,7 @@ var init_schema = __esm({
       updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
       lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull()
     });
-    clientAccounts2 = mysqlTable("clientAccounts", {
+    clientAccounts = mysqlTable("clientAccounts", {
       id: int("id").autoincrement().primaryKey(),
       name: varchar("name", { length: 255 }).notNull(),
       email: varchar("email", { length: 320 }).notNull().unique(),
@@ -144,7 +144,7 @@ var NOT_ADMIN_ERR_MSG = "You do not have required permission (10002)";
 
 // server/db.ts
 init_schema();
-import { and, desc, eq as eq2, gte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 
 // server/_core/env.ts
@@ -156,12 +156,13 @@ var ENV = {
   ownerOpenId: process.env.OWNER_OPEN_ID ?? "",
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
-  forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? ""
+  forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  adminMasterPassword: process.env.ADMIN_MASTER_PASSWORD ?? "AdminPixBot2024Secure!"
 };
 
 // server/db.ts
 var _db = null;
-async function getDb2() {
+async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
       _db = drizzle(process.env.DATABASE_URL);
@@ -174,7 +175,7 @@ async function getDb2() {
 }
 async function upsertUser(user) {
   if (!user.openId) throw new Error("User openId is required for upsert");
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return;
   const values = { openId: user.openId };
   const updateSet = {};
@@ -202,62 +203,62 @@ async function upsertUser(user) {
   await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
 }
 async function getUserByOpenId(openId) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return void 0;
-  const result = await db.select().from(users).where(eq2(users.openId, openId)).limit(1);
+  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
   return result[0];
 }
 async function createClientAccount(data) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) throw new Error("Database not available");
-  const [result] = await db.insert(clientAccounts2).values(data);
+  const [result] = await db.insert(clientAccounts).values(data);
   return result.insertId;
 }
 async function getClientByEmail(email) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return void 0;
-  const result = await db.select().from(clientAccounts2).where(eq2(clientAccounts2.email, email.toLowerCase())).limit(1);
+  const result = await db.select().from(clientAccounts).where(eq(clientAccounts.email, email.toLowerCase())).limit(1);
   return result[0];
 }
 async function getClientById(id) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return void 0;
-  const result = await db.select().from(clientAccounts2).where(eq2(clientAccounts2.id, id)).limit(1);
+  const result = await db.select().from(clientAccounts).where(eq(clientAccounts.id, id)).limit(1);
   return result[0];
 }
 async function getAllClients(limit = 300) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return [];
-  return db.select().from(clientAccounts2).orderBy(desc(clientAccounts2.createdAt)).limit(limit);
+  return db.select().from(clientAccounts).orderBy(desc(clientAccounts.createdAt)).limit(limit);
 }
 async function createWallet(clientId) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) throw new Error("Database not available");
   const [result] = await db.insert(wallets).values({ clientId });
   return result.insertId;
 }
 async function getWalletByClientId(clientId) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return void 0;
-  const result = await db.select().from(wallets).where(eq2(wallets.clientId, clientId)).limit(1);
+  const result = await db.select().from(wallets).where(eq(wallets.clientId, clientId)).limit(1);
   return result[0];
 }
 async function getAllWallets(limit = 300) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return [];
   return db.select().from(wallets).orderBy(desc(wallets.createdAt)).limit(limit);
 }
 async function updateWalletBalance(walletId, deltaBalance, deltaDeposited, deltaWithdrawn) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.update(wallets).set({
     balance: sql`balance + ${deltaBalance}`,
     totalDeposited: sql`totalDeposited + ${deltaDeposited}`,
     totalWithdrawn: sql`totalWithdrawn + ${deltaWithdrawn}`
-  }).where(eq2(wallets.id, walletId));
+  }).where(eq(wallets.id, walletId));
 }
 async function createTransaction(data) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) throw new Error("Database not available");
   const [result] = await db.insert(transactions).values({
     ...data,
@@ -268,71 +269,71 @@ async function createTransaction(data) {
   return result.insertId;
 }
 async function getTransactionById(id) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return void 0;
-  const result = await db.select().from(transactions).where(eq2(transactions.id, id)).limit(1);
+  const result = await db.select().from(transactions).where(eq(transactions.id, id)).limit(1);
   return result[0];
 }
 async function getTransactionsByClientId(clientId, limit = 50) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return [];
-  return db.select().from(transactions).where(eq2(transactions.clientId, clientId)).orderBy(desc(transactions.createdAt)).limit(limit);
+  return db.select().from(transactions).where(eq(transactions.clientId, clientId)).orderBy(desc(transactions.createdAt)).limit(limit);
 }
 async function getAllTransactions(limit = 300) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return [];
   return db.select().from(transactions).orderBy(desc(transactions.createdAt)).limit(limit);
 }
 async function getPendingTransactions() {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return [];
-  return db.select().from(transactions).where(eq2(transactions.status, "pending")).orderBy(desc(transactions.createdAt));
+  return db.select().from(transactions).where(eq(transactions.status, "pending")).orderBy(desc(transactions.createdAt));
 }
 async function updateTransactionStatus(id, status, adminNote) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.update(transactions).set({
     status,
     adminNote: adminNote ?? null,
     approvedAt: status === "approved" || status === "completed" ? /* @__PURE__ */ new Date() : void 0
-  }).where(eq2(transactions.id, id));
+  }).where(eq(transactions.id, id));
 }
 async function getAdvancedStats() {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return null;
   const now = /* @__PURE__ */ new Date();
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const startOfWeek = new Date(startOfDay);
   startOfWeek.setDate(startOfDay.getDate() - startOfDay.getDay());
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const [totalFeesRow] = await db.select({ total: sql`COALESCE(SUM(fee), 0)` }).from(transactions).where(and(eq2(transactions.type, "withdrawal"), eq2(transactions.status, "completed")));
+  const [totalFeesRow] = await db.select({ total: sql`COALESCE(SUM(fee), 0)` }).from(transactions).where(and(eq(transactions.type, "withdrawal"), eq(transactions.status, "completed")));
   const [feesTodayRow] = await db.select({ total: sql`COALESCE(SUM(fee), 0)` }).from(transactions).where(
     and(
-      eq2(transactions.type, "withdrawal"),
-      eq2(transactions.status, "completed"),
+      eq(transactions.type, "withdrawal"),
+      eq(transactions.status, "completed"),
       gte(transactions.createdAt, startOfDay)
     )
   );
   const [feesWeekRow] = await db.select({ total: sql`COALESCE(SUM(fee), 0)` }).from(transactions).where(
     and(
-      eq2(transactions.type, "withdrawal"),
-      eq2(transactions.status, "completed"),
+      eq(transactions.type, "withdrawal"),
+      eq(transactions.status, "completed"),
       gte(transactions.createdAt, startOfWeek)
     )
   );
   const [feesMonthRow] = await db.select({ total: sql`COALESCE(SUM(fee), 0)` }).from(transactions).where(
     and(
-      eq2(transactions.type, "withdrawal"),
-      eq2(transactions.status, "completed"),
+      eq(transactions.type, "withdrawal"),
+      eq(transactions.status, "completed"),
       gte(transactions.createdAt, startOfMonth)
     )
   );
-  const [totalDepositedRow] = await db.select({ total: sql`COALESCE(SUM(amount), 0)` }).from(transactions).where(and(eq2(transactions.type, "deposit"), eq2(transactions.status, "completed")));
-  const [totalWithdrawnRow] = await db.select({ total: sql`COALESCE(SUM(netAmount), 0)` }).from(transactions).where(and(eq2(transactions.type, "withdrawal"), eq2(transactions.status, "completed")));
-  const [totalClientsRow] = await db.select({ count: sql`COUNT(*)` }).from(clientAccounts2);
-  const [newClientsTodayRow] = await db.select({ count: sql`COUNT(*)` }).from(clientAccounts2).where(gte(clientAccounts2.createdAt, startOfDay));
+  const [totalDepositedRow] = await db.select({ total: sql`COALESCE(SUM(amount), 0)` }).from(transactions).where(and(eq(transactions.type, "deposit"), eq(transactions.status, "completed")));
+  const [totalWithdrawnRow] = await db.select({ total: sql`COALESCE(SUM(netAmount), 0)` }).from(transactions).where(and(eq(transactions.type, "withdrawal"), eq(transactions.status, "completed")));
+  const [totalClientsRow] = await db.select({ count: sql`COUNT(*)` }).from(clientAccounts);
+  const [newClientsTodayRow] = await db.select({ count: sql`COUNT(*)` }).from(clientAccounts).where(gte(clientAccounts.createdAt, startOfDay));
   const [totalTxRow] = await db.select({ count: sql`COUNT(*)` }).from(transactions);
-  const [pendingTxRow] = await db.select({ count: sql`COUNT(*)` }).from(transactions).where(eq2(transactions.status, "pending"));
+  const [pendingTxRow] = await db.select({ count: sql`COUNT(*)` }).from(transactions).where(eq(transactions.status, "pending"));
   return {
     totalFees: parseFloat(totalFeesRow?.total ?? "0"),
     feesToday: parseFloat(feesTodayRow?.total ?? "0"),
@@ -347,19 +348,19 @@ async function getAdvancedStats() {
   };
 }
 async function updateClientStatus(id, isActive) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.update(clientAccounts2).set({ isActive }).where(eq2(clientAccounts2.id, id));
+  await db.update(clientAccounts).set({ isActive }).where(eq(clientAccounts.id, id));
 }
 async function deleteClientAccount(id) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) throw new Error("Database not available");
-  await db.delete(transactions).where(eq2(transactions.clientId, id));
-  await db.delete(wallets).where(eq2(wallets.clientId, id));
-  await db.delete(clientAccounts2).where(eq2(clientAccounts2.id, id));
+  await db.delete(transactions).where(eq(transactions.clientId, id));
+  await db.delete(wallets).where(eq(wallets.clientId, id));
+  await db.delete(clientAccounts).where(eq(clientAccounts.id, id));
 }
 async function getAdminWallet() {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return void 0;
   const { adminWallet: adminWallet2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
   let result = await db.select().from(adminWallet2).limit(1);
@@ -370,7 +371,7 @@ async function getAdminWallet() {
   return result[0];
 }
 async function updateAdminWallet(deltaBalance, deltaFees) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) throw new Error("Database not available");
   const { adminWallet: adminWallet2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
   const wallet = await getAdminWallet();
@@ -378,55 +379,55 @@ async function updateAdminWallet(deltaBalance, deltaFees) {
   await db.update(adminWallet2).set({
     balance: sql`balance + ${deltaBalance}`,
     totalFeesEarned: sql`totalFeesEarned + ${deltaFees}`
-  }).where(eq2(adminWallet2.id, wallet.id));
+  }).where(eq(adminWallet2.id, wallet.id));
 }
 async function getAffiliateByClientId(clientId) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return void 0;
   const { affiliates: affiliates2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
-  const result = await db.select().from(affiliates2).where(eq2(affiliates2.clientId, clientId)).limit(1);
+  const result = await db.select().from(affiliates2).where(eq(affiliates2.clientId, clientId)).limit(1);
   return result[0];
 }
 async function createAffiliate(clientId) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) throw new Error("Database not available");
   const { affiliates: affiliates2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
   const referralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
   await db.insert(affiliates2).values({ clientId, referralCode });
 }
 async function getReferralsByAffiliateId(affiliateId) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return [];
-  const { referrals: referrals2, clientAccounts: clientAccounts3 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
+  const { referrals: referrals2, clientAccounts: clientAccounts2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
   return db.select({
     id: referrals2.id,
-    clientName: clientAccounts3.name,
-    clientEmail: clientAccounts3.email,
+    clientName: clientAccounts2.name,
+    clientEmail: clientAccounts2.email,
     commission: referrals2.commissionEarned,
     createdAt: referrals2.createdAt
-  }).from(referrals2).innerJoin(clientAccounts3, eq2(referrals2.referredClientId, clientAccounts3.id)).where(eq2(referrals2.affiliateId, affiliateId)).orderBy(desc(referrals2.createdAt));
+  }).from(referrals2).innerJoin(clientAccounts2, eq(referrals2.referredClientId, clientAccounts2.id)).where(eq(referrals2.affiliateId, affiliateId)).orderBy(desc(referrals2.createdAt));
 }
 async function getSetting(key) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return void 0;
   const { settings: settings2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
-  const result = await db.select().from(settings2).where(eq2(settings2.key, key)).limit(1);
+  const result = await db.select().from(settings2).where(eq(settings2.key, key)).limit(1);
   return result[0]?.value;
 }
 async function updateSetting(key, value) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) throw new Error("Database not available");
   const { settings: settings2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
   await db.insert(settings2).values({ key, value }).onDuplicateKeyUpdate({ set: { value } });
 }
 async function createAuditLog(data) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return;
   const { auditLogs: auditLogs2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
   await db.insert(auditLogs2).values(data);
 }
 async function getDailyChartData(days = 30) {
-  const db = await getDb2();
+  const db = await getDb();
   if (!db) return [];
   const since = /* @__PURE__ */ new Date();
   since.setDate(since.getDate() - days + 1);
@@ -826,7 +827,6 @@ function registerStorageProxy(app) {
 }
 
 // server/routers.ts
-import { TRPCError as TRPCError3 } from "@trpc/server";
 import { z as z2 } from "zod";
 
 // server/_core/systemRouter.ts
@@ -1137,7 +1137,11 @@ if (TELEGRAM_TOKEN) {
 // server/routers.ts
 import { SignJWT as SignJWT2, jwtVerify as jwtVerify2 } from "jose";
 import { createHash } from "crypto";
+import { TRPCError as TRPCError3 } from "@trpc/server";
+init_schema();
+import { eq as eq2 } from "drizzle-orm";
 var CLIENT_COOKIE = "pix_client_session";
+var ADMIN_COOKIE = "pix_admin_session";
 function hashPassword(password) {
   return createHash("sha256").update(password + "pix_salt_2024").digest("hex");
 }
@@ -1164,7 +1168,28 @@ async function verifyClientJwt(token) {
     return null;
   }
 }
-var adminProcedure2 = protectedProcedure.use(({ ctx: ctx2, next }) => {
+async function signAdminJwt() {
+  const secret = new TextEncoder().encode(ENV.cookieSecret);
+  return new SignJWT2({ type: "admin", iat: Date.now() }).setProtectedHeader({ alg: "HS256" }).setExpirationTime("7d").sign(secret);
+}
+async function verifyAdminJwt(token) {
+  try {
+    const secret = new TextEncoder().encode(ENV.cookieSecret);
+    const { payload } = await jwtVerify2(token, secret);
+    return payload.type === "admin";
+  } catch {
+    return false;
+  }
+}
+var adminProcedure2 = publicProcedure.use(async ({ ctx: ctx2, next }) => {
+  const token = ctx2.req.cookies?.[ADMIN_COOKIE];
+  if (!token) {
+    throw new TRPCError3({ code: "UNAUTHORIZED", message: "Sess\xE3o de administrador n\xE3o encontrada." });
+  }
+  const isValid = await verifyAdminJwt(token);
+  if (!isValid) {
+    throw new TRPCError3({ code: "UNAUTHORIZED", message: "Sess\xE3o de administrador inv\xE1lida ou expirada." });
+  }
   return next({ ctx: ctx2 });
 });
 var clientAuthProcedure = publicProcedure.use(async ({ ctx: ctx2, next }) => {
@@ -1250,6 +1275,38 @@ var appRouter = router({
       const cookieOptions = getSessionCookieOptions(ctx2.req);
       ctx2.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true };
+    })
+  }),
+  // ── Admin Auth (Master Password) ──────────────────────────────────────────
+  adminAuth: router({
+    loginWithPassword: publicProcedure.input(z2.object({ password: z2.string().min(1) })).mutation(async ({ input, ctx: ctx2 }) => {
+      if (input.password !== ENV.adminMasterPassword) {
+        throw new TRPCError3({ code: "UNAUTHORIZED", message: "Senha de administrador incorreta." });
+      }
+      const token = await signAdminJwt();
+      ctx2.res.cookie(ADMIN_COOKIE, token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60 * 1e3
+      });
+      return { success: true };
+    }),
+    logoutAdmin: publicProcedure.mutation(({ ctx: ctx2 }) => {
+      ctx2.res.clearCookie(ADMIN_COOKIE, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+        maxAge: -1
+      });
+      return { success: true };
+    }),
+    checkAdminSession: publicProcedure.query(async ({ ctx: ctx2 }) => {
+      const token = ctx2.req.cookies?.[ADMIN_COOKIE];
+      if (!token) return false;
+      return await verifyAdminJwt(token);
     })
   }),
   // ── Client Auth (email/password) ──────────────────────────────────────────
@@ -1341,7 +1398,7 @@ var appRouter = router({
       await db.update(clientAccounts).set({
         telegramId: input.telegramId,
         telegramName: input.telegramName ?? null
-      }).where(eq(clientAccounts.id, ctx2.clientAccount.id));
+      }).where(eq2(clientAccounts.id, ctx2.clientAccount.id));
       return { success: true };
     }),
     myWallet: clientAuthProcedure.query(async ({ ctx: ctx2 }) => {

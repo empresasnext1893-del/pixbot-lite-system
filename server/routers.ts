@@ -25,6 +25,7 @@ import {
   upsertUser,
   getUserByOpenId,
   updateClientStatus,
+  updateClientLastLogin,
   deleteClientAccount,
   getAdminWallet,
   updateAdminWallet,
@@ -276,6 +277,7 @@ function calcDepositFee(amount: number) {
           passwordHash,
         });
         await createWallet(clientId);
+        await updateClientLastLogin(clientId);
         const token = await signClientJwt(clientId);
         ctx.res.cookie(CLIENT_COOKIE, token, {
           httpOnly: true,
@@ -307,6 +309,7 @@ function calcDepositFee(amount: number) {
         if (!client.isActive) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Conta desativada." });
         }
+        await updateClientLastLogin(client.id);
         const token = await signClientJwt(client.id);
         ctx.res.cookie(CLIENT_COOKIE, token, {
           httpOnly: true,
@@ -689,6 +692,9 @@ function calcDepositFee(amount: number) {
           netAmount: Math.abs(input.amount),
           adminNote: input.reason || "Ajuste manual de saldo pelo administrador"
         });
+        
+        // Marcar como concluída imediatamente já que é um ajuste manual
+        await updateTransactionStatus(txId, "completed", input.reason);
 
         // Audit Log
         await createAuditLog({

@@ -33,6 +33,7 @@ export const clientAccounts = mysqlTable("clientAccounts", {
   telegramId: varchar("telegramId", { length: 64 }),
   telegramName: varchar("telegramName", { length: 255 }),
   isActive: boolean("isActive").default(true).notNull(),
+  lastLoginAt: timestamp("lastLoginAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

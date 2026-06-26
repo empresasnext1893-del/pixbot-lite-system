@@ -24,19 +24,11 @@ export async function getDb() {
       const user = url.username;
       const password = url.password;
       const database = url.pathname.substring(1);
-      const sslParam = url.searchParams.get("ssl");
-
-      let sslEnabled = false;
-      if (sslParam) {
-        try {
-          const parsedSsl = JSON.parse(sslParam);
-          if (parsedSsl.rejectUnauthorized === true) {
-            sslEnabled = true;
-          }
-        } catch (e) {
-          console.warn("[Database] Could not parse SSL parameter from DATABASE_URL:", e);
-        }
-      }
+            // Force SSL for TiDB Cloud
+      const isTiDB = host.includes("tidbcloud.com");
+      const sslConfig = isTiDB ? { rejectUnauthorized: true } : undefined;
+      
+      console.log(`[Database] Connecting to ${host} (TiDB: ${isTiDB})`);
 
       _db = drizzle(mysql.createPool({
         host,
@@ -44,7 +36,7 @@ export async function getDb() {
         user,
         password,
         database,
-        ssl: sslEnabled ? { rejectUnauthorized: true, ca: fs.readFileSync('/etc/ssl/certs/ca-certificates.crt') } : undefined,
+        ssl: sslConfig,
       }));
     } catch (error) {
       console.error("[Database] Failed to connect:", error);

@@ -137,8 +137,8 @@ const clientAuthProcedure = publicProcedure.use(async ({ ctx, next }) => {
 
 // ── Fee calculation ───────────────────────────────────────────────────────────
 
-let FEE_PERCENT = 0.20;
-let FEE_FIXED = 3.00;
+let FEE_PERCENT = 0.20; // 20% depósito
+let FEE_FIXED = 3.00; // R$ 3,00 saque fixo
 let MIN_WITHDRAWAL = 20.00;
 let MIN_DEPOSIT = 10.00;
 let MAX_DAILY = 10000.00;
@@ -638,7 +638,7 @@ function calcDepositFee(amount: number) {
         // mas somamos o valor BRUTO (amount) ao total depositado para estatísticas.
         await updateWalletBalance(tx.walletId, parseFloat(String(tx.netAmount)), parseFloat(String(tx.amount)), 0);
         
-        // Adicionar taxa ao lucro administrativo
+        // Adicionar taxa ao lucro administrativo (Admin Wallet)
         await updateAdminWallet(parseFloat(String(tx.fee)), parseFloat(String(tx.fee)));
 
         // Audit Log

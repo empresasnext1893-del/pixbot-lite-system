@@ -6,7 +6,13 @@ import { toast } from "sonner";
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Zap } from "lucide-react";
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<"login" | "register">(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("mode") === "register" ? "register" : "login";
+    }
+    return "login";
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [, navigate] = useLocation();
@@ -25,7 +31,7 @@ export default function AuthPage() {
       if (mode === "login") {
         await login(email, password);
         toast.success("Login realizado com sucesso!");
-        navigate("/");
+        navigate("/wallet");
       } else {
         if (password !== confirm) {
           toast.error("As senhas não coincidem.");
@@ -33,7 +39,7 @@ export default function AuthPage() {
         }
         await register(name, email, password);
         toast.success("Conta criada! Bem-vindo(a)!");
-        navigate("/");
+        navigate("/wallet");
       }
     } catch (err: any) {
       toast.error(err?.message ?? "Ocorreu um erro. Tente novamente.");

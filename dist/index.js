@@ -54,6 +54,7 @@ var init_schema = __esm({
       telegramId: varchar("telegramId", { length: 64 }),
       telegramName: varchar("telegramName", { length: 255 }),
       isActive: boolean("isActive").default(true).notNull(),
+      lastLoginAt: timestamp("lastLoginAt"),
       createdAt: timestamp("createdAt").defaultNow().notNull(),
       updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull()
     });
@@ -146,6 +147,7 @@ var NOT_ADMIN_ERR_MSG = "You do not have required permission (10002)";
 init_schema();
 import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
 
 // server/_core/env.ts
 var ENV = {
@@ -165,9 +167,45 @@ var _db = null;
 async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      console.log("[Database] Attempting to connect with DATABASE_URL (first 10 chars):", process.env.DATABASE_URL?.substring(0, 10));
+      const dbUrl = process.env.DATABASE_URL;
+      if (!dbUrl) {
+        console.error("[Database] DATABASE_URL is not defined.");
+        _db = null;
+        return _db;
+      }
+      const url = new URL(dbUrl);
+      const host = url.hostname;
+      const port = parseInt(url.port || "3306");
+      const user = url.username;
+      const password = url.password;
+      const database = url.pathname.substring(1);
+      const sslParam = url.searchParams.get("ssl");
+      let sslOptions = void 0;
+      if (sslParam) {
+        try {
+          const parsedSsl = JSON.parse(sslParam);
+          if (parsedSsl.rejectUnauthorized === true) {
+            sslOptions = {
+              rejectUnauthorized: true,
+              ca: process.env.MYSQL_ATTR_SSL_CA || void 0
+              // Use a specific CA if provided, otherwise rely on system CAs
+            };
+          }
+        } catch (e) {
+          console.warn("[Database] Could not parse SSL parameter from DATABASE_URL:", e);
+        }
+      }
+      _db = drizzle(mysql.createPool({
+        host,
+        port,
+        user,
+        password,
+        database,
+        ssl: sslOptions
+      }));
     } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
+      console.error("[Database] Failed to connect:", error);
       _db = null;
     }
   }
@@ -225,6 +263,11 @@ async function getClientById(id) {
   if (!db) return void 0;
   const result = await db.select().from(clientAccounts).where(eq(clientAccounts.id, id)).limit(1);
   return result[0];
+}
+async function updateClientLastLogin(id) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(clientAccounts).set({ lastLoginAt: /* @__PURE__ */ new Date() }).where(eq(clientAccounts.id, id));
 }
 async function getAllClients(limit = 300) {
   const db = await getDb();
@@ -1329,6 +1372,7 @@ var appRouter = router({
         passwordHash
       });
       await createWallet(clientId);
+      await updateClientLastLogin(clientId);
       const token = await signClientJwt(clientId);
       ctx2.res.cookie(CLIENT_COOKIE, token, {
         httpOnly: true,
@@ -1357,6 +1401,7 @@ var appRouter = router({
       if (!client.isActive) {
         throw new TRPCError3({ code: "FORBIDDEN", message: "Conta desativada." });
       }
+      await updateClientLastLogin(client.id);
       const token = await signClientJwt(client.id);
       ctx2.res.cookie(CLIENT_COOKIE, token, {
         httpOnly: true,
@@ -1651,6 +1696,7 @@ _Voc\xEA ser\xE1 notificado quando aprovado._`,
         netAmount: Math.abs(input.amount),
         adminNote: input.reason || "Ajuste manual de saldo pelo administrador"
       });
+      await updateTransactionStatus(txId, "completed", input.reason);
       await createAuditLog({
         adminId: ctx.user?.id || 999,
         action: "manual_balance_update",

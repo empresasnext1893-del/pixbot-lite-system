@@ -1,5 +1,6 @@
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
 import { InsertUser, clientAccounts, transactions, users, wallets } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -9,7 +10,44 @@ export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
       console.log("[Database] Attempting to connect with DATABASE_URL (first 10 chars):", process.env.DATABASE_URL?.substring(0, 10));
-      _db = drizzle(process.env.DATABASE_URL);
+      const dbUrl = process.env.DATABASE_URL;
+      if (!dbUrl) {
+        console.error("[Database] DATABASE_URL is not defined.");
+        _db = null;
+        return _db;
+      }
+
+      const url = new URL(dbUrl);
+      const host = url.hostname;
+      const port = parseInt(url.port || "3306");
+      const user = url.username;
+      const password = url.password;
+      const database = url.pathname.substring(1);
+      const sslParam = url.searchParams.get("ssl");
+
+      let sslOptions = undefined;
+      if (sslParam) {
+        try {
+          const parsedSsl = JSON.parse(sslParam);
+          if (parsedSsl.rejectUnauthorized === true) {
+            sslOptions = {
+              rejectUnauthorized: true,
+              ca: process.env.MYSQL_ATTR_SSL_CA || undefined, // Use a specific CA if provided, otherwise rely on system CAs
+            };
+          }
+        } catch (e) {
+          console.warn("[Database] Could not parse SSL parameter from DATABASE_URL:", e);
+        }
+      }
+
+      _db = drizzle(mysql.createPool({
+        host,
+        port,
+        user,
+        password,
+        database,
+        ssl: sslOptions,
+      }));
     } catch (error) {
       console.error("[Database] Failed to connect:", error);
       _db = null;

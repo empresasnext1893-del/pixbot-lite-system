@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { useClientAuth } from "@/hooks/useClientAuth";
 import { useLocation } from "wouter";
 
-type Tab = "home" | "history" | "referral" | "support" | "about";
+type Tab = "home" | "history" | "referral" | "wallet" | "support";
 
 function fmt(val: string | number) {
   return `R$ ${parseFloat(String(val)).toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;

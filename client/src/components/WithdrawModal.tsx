@@ -28,7 +28,6 @@ export default function WithdrawModal({ isOpen, onClose, telegramId, balance, on
     pixKeyType: string;
   } | null>(null);
 
-  const FEE_PERCENT = 0.20;
   const FEE_FIXED = 3.00;
 
   const grossAmount = parseFloat(amount.replace(/\./g, "").replace(",", ".")) || 0;

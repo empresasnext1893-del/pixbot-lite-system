@@ -181,6 +181,7 @@ export default function AdminNew() {
     onSuccess: () => {
       toast.success("Status do cliente atualizado!");
       utils.admin.clientAccounts.invalidate();
+      utils.admin.wallets.invalidate();
     },
     onError: (err) => toast.error(err.message),
   });
@@ -950,7 +951,7 @@ export default function AdminNew() {
                         <div className="flex gap-2">
                           <Input
                             type="number"
-                            value={editDepositFee || (taxSettings?.depositTaxPercent ?? "")}
+                            value={editDepositFee !== "" ? editDepositFee : (taxSettings?.depositTaxPercent ?? "")}
                             onChange={(e) => setEditDepositFee(e.target.value)}
                             placeholder="Ex: 20"
                             className="flex-1"
@@ -972,7 +973,7 @@ export default function AdminNew() {
                         <div className="flex gap-2">
                           <Input
                             type="number"
-                            value={editWithdrawalFee || (taxSettings?.withdrawalTaxFixed ?? "")}
+                            value={editWithdrawalFee !== "" ? editWithdrawalFee : (taxSettings?.withdrawalTaxFixed ?? "")}
                             onChange={(e) => setEditWithdrawalFee(e.target.value)}
                             placeholder="Ex: 3.00"
                             className="flex-1"
@@ -1004,7 +1005,7 @@ export default function AdminNew() {
                         <div className="flex gap-2">
                           <Input
                             type="number"
-                            value={editMinDeposit || (taxSettings?.minDeposit ?? "")}
+                            value={editMinDeposit !== "" ? editMinDeposit : (taxSettings?.minDeposit ?? "")}
                             onChange={(e) => setEditMinDeposit(e.target.value)}
                             placeholder="Ex: 10"
                             className="flex-1"
@@ -1026,7 +1027,7 @@ export default function AdminNew() {
                         <div className="flex gap-2">
                           <Input
                             type="number"
-                            value={editMinWithdrawal || (taxSettings?.minWithdrawal ?? "")}
+                            value={editMinWithdrawal !== "" ? editMinWithdrawal : (taxSettings?.minWithdrawal ?? "")}
                             onChange={(e) => setEditMinWithdrawal(e.target.value)}
                             placeholder="Ex: 20"
                             className="flex-1"
@@ -1048,7 +1049,7 @@ export default function AdminNew() {
                         <div className="flex gap-2">
                           <Input
                             type="number"
-                            value={editMaxDaily || (taxSettings?.maxDaily ?? "")}
+                            value={editMaxDaily !== "" ? editMaxDaily : (taxSettings?.maxDaily ?? "")}
                             onChange={(e) => setEditMaxDaily(e.target.value)}
                             placeholder="Ex: 10000"
                             className="flex-1"

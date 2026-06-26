@@ -100,7 +100,7 @@ export default function WalletPage() {
                 <LogOut className="w-3.5 h-3.5" />
                 Sair
               </Button>
-              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground gap-1.5" onClick={() => window.open("https://t.me/", "_blank")}>
+              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground gap-1.5" onClick={() => window.open("https://t.me/pixbot_suporte_oficial", "_blank")}>
                 <Send className="w-3.5 h-3.5" />
                 Telegram
               </Button>

@@ -1,7 +1,6 @@
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
-import fs from "fs";
 import { InsertUser, clientAccounts, transactions, users, wallets } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -10,34 +9,34 @@ let _db: ReturnType<typeof drizzle> | null = null;
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      console.log("[Database] Attempting to connect with DATABASE_URL (first 10 chars):", process.env.DATABASE_URL?.substring(0, 10));
       const dbUrl = process.env.DATABASE_URL;
-      if (!dbUrl) {
-        console.error("[Database] DATABASE_URL is not defined.");
-        _db = null;
-        return _db;
-      }
-
       const url = new URL(dbUrl);
+      
       const host = url.hostname;
       const port = parseInt(url.port || "3306");
       const user = url.username;
       const password = url.password;
       const database = url.pathname.substring(1);
-            // Force SSL for TiDB Cloud
+
+      // Force SSL for TiDB Cloud
       const isTiDB = host.includes("tidbcloud.com");
       const sslConfig = isTiDB ? { rejectUnauthorized: true } : undefined;
       
-      console.log(`[Database] Connecting to ${host} (TiDB: ${isTiDB})`);
+      console.log(`[Database] Connecting to ${host} (TiDB: ${isTiDB}, SSL: ${!!sslConfig})`);
 
-      _db = drizzle(mysql.createPool({
+      const pool = mysql.createPool({
         host,
         port,
         user,
         password,
         database,
         ssl: sslConfig,
-      }));
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0
+      });
+
+      _db = drizzle(pool);
     } catch (error) {
       console.error("[Database] Failed to connect:", error);
       _db = null;
@@ -480,7 +479,8 @@ export async function getAllSettings() {
   return db.select().from(settings).orderBy(settings.key);
 }
 
-// ── Chart Data (últimos N dias) ─────────────────────────────────────────────
+// ── Audit Logs ───────────────────────────────────────────────────────────────
+
 export async function createAuditLog(data: {
   adminId: number;
   action: string;
@@ -495,13 +495,14 @@ export async function createAuditLog(data: {
   await db.insert(auditLogs).values(data);
 }
 
+// ── Chart Data (últimos N dias) ─────────────────────────────────────────────
+
 export async function getDailyChartData(days = 30) {
   const db = await getDb();
   if (!db) return [];
   const since = new Date();
   since.setDate(since.getDate() - days + 1);
   since.setHours(0, 0, 0, 0);
-
   const rows = await db
     .select({
       day: sql<string>`DATE(createdAt)`,
@@ -515,9 +516,7 @@ export async function getDailyChartData(days = 30) {
     .where(gte(transactions.createdAt, since))
     .groupBy(sql`DATE(createdAt)`, transactions.type, transactions.status)
     .orderBy(sql`DATE(createdAt)`);
-
   const byDate: Record<string, { date: string; depositos: number; saques: number; taxas: number; lucro: number; transacoes: number }> = {};
-
   for (const row of rows) {
     const d = row.day;
     if (!byDate[d]) {
@@ -537,7 +536,6 @@ export async function getDailyChartData(days = 30) {
     }
     byDate[d].transacoes += Number(row.count);
   }
-
   const result = [];
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date();

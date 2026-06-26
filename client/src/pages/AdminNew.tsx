@@ -802,19 +802,16 @@ export default function AdminNew() {
                                 toast.error("Valor inválido");
                                 return;
                               }
-                              // Aplicar taxa de 20% se for adição de saldo (depósito manual)
-                              const finalAmount = amount > 0 ? Math.round(amount * 0.8 * 100) / 100 : amount;
-                              const reason = clientBalanceReason || (amount > 0 ? `Depósito manual (Líquido de R$ ${amount.toFixed(2)} - 20% taxa)` : "Ajuste administrativo");
+                              // Não aplicar taxa manual aqui, pois o administrador quer definir o saldo exato.
+                              // A taxa de 20% já é gerenciada pelo backend em operações de depósito automático.
+                              const finalAmount = amount;
+                              const reason = clientBalanceReason || (amount > 0 ? "Depósito manual pelo administrador" : "Ajuste administrativo");
                               
                               updateClientBalanceMutation.mutate({
                                 clientId: selectedClientForBalance,
                                 amount: finalAmount,
                                 reason
                               });
-                              
-                              if (amount > 0) {
-                                toast.info(`Taxa de 20% aplicada. Valor líquido: R$ ${finalAmount.toFixed(2)}`);
-                              }
                             }}
                             disabled={updateClientBalanceMutation.isPending}
                             className="mt-4 w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"

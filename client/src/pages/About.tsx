@@ -76,11 +76,11 @@ export default function About() {
               </div>
               <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex justify-between items-center">
                 <span className="text-sm" style={{ color: "var(--wallet-text-secondary)" }}>Saque Mínimo</span>
-                <span className="font-bold text-white">R$ 20,00</span>
+                <span className="font-bold text-white">R$ 10,00</span>
               </div>
               <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex justify-between items-center">
-                <span className="text-sm" style={{ color: "var(--wallet-text-secondary)" }}>Limite Diário</span>
-                <span className="font-bold text-white">R$ 10.000,00</span>
+                <span className="text-sm" style={{ color: "var(--wallet-text-secondary)" }}>Limite por Operação</span>
+                <span className="font-bold text-white">R$ 1.000.000,00</span>
               </div>
             </div>
             <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 flex items-start gap-2">
@@ -145,15 +145,15 @@ function FAQSection() {
     },
     {
       question: "Como faço para sacar meu dinheiro?",
-      answer: "Acesse a aba 'Sacar', insira o valor desejado (mínimo R$ 20,00), informe sua chave PIX e clique em 'Solicitar Saque'. Sua solicitação será enviada para análise e aprovação. Após aprovação, o valor será transferido para sua conta em até 24 horas.",
+      answer: "Acesse a aba 'Sacar', insira o valor desejado (mínimo R$ 10,00), informe sua chave PIX e clique em 'Solicitar Saque'. Sua solicitação será enviada para análise e aprovação. Após aprovação, o valor será transferido para sua conta em até 24 horas.",
     },
     {
       question: "Qual é a taxa de saque?",
       answer: "A taxa de saque é fixa em R$ 3,00 por solicitação. Essa taxa é descontada do valor total do saque. Por exemplo, se você solicitar um saque de R$ 100, receberá R$ 97 em sua conta.",
     },
     {
-      question: "Qual é o limite de transações diárias?",
-      answer: "O limite diário padrão é de R$ 10.000,00. Esse limite pode ser aumentado conforme o volume de transações e o tempo de conta. Entre em contato com nosso suporte técnico para solicitar um aumento de limite.",
+      question: "Qual é o limite por transação?",
+      answer: "O limite padrão por transação é de R$ 1.000.000,00. Esse limite garante a segurança das operações de alto volume. Entre em contato com nosso suporte técnico para mais informações.",
     },
     {
       question: "Como vinculo minha conta ao Telegram?",

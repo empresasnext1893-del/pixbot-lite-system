@@ -391,11 +391,11 @@ export default function HomeNew() {
                     </div>
                     <div className="flex justify-between items-center text-[10px] p-2 rounded-lg bg-white/5">
                       <span className="text-muted-foreground">Saque Mínimo</span>
-                      <span className="font-bold text-foreground">R$ 20,00</span>
+                      <span className="font-bold text-foreground">R$ 10,00</span>
                     </div>
                     <div className="flex justify-between items-center text-[10px] p-2 rounded-lg bg-white/5">
-                      <span className="text-muted-foreground">Limite Diário</span>
-                      <span className="font-bold text-foreground">R$ 10.000,00</span>
+                      <span className="text-muted-foreground">Limite por Operação</span>
+                      <span className="font-bold text-foreground">R$ 1.000.000,00</span>
                     </div>
                   </div>
                   <div className="p-3 rounded-xl bg-primary/5 border border-primary/10 flex items-start gap-2">

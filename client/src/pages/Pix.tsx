@@ -71,13 +71,11 @@ export default function Pix() {
 
   const depositMutation = trpc.wallet.initiateDeposit.useMutation({
     onSuccess: (data) => {
+      // Usar os valores retornados pelo backend para evitar duplicação de lógica
       setDepositResult({
         ...data,
-        fee: data.amount * 0.20,
-        netAmount: data.amount * 0.80,
-        feePercent: 20,
         expiresAt: new Date(data.expiresAt)
-      });
+      } as any);
       toast.success("Cobrança PIX gerada com sucesso!");
     },
     onError: (err) => {
@@ -144,7 +142,9 @@ export default function Pix() {
   const depositNet = parseFloat((depositAmountNum - depositFeeValue).toFixed(2));
 
   const withdrawAmountNum = parseFloat(withdrawAmount.replace(",", ".")) || 0;
-  const withdrawTotal = parseFloat((withdrawAmountNum + withdrawalFee).toFixed(2));
+  // O valor total debitado é o próprio valor bruto inserido, a taxa é subtraída dele
+  const withdrawTotal = withdrawAmountNum;
+  const withdrawNet = Math.max(0, withdrawAmountNum - withdrawalFee);
 
   if (!isAuthenticated) {
     navigate("/");
@@ -374,8 +374,8 @@ export default function Pix() {
                         <span style={{ color: "var(--wallet-red)" }}>- R$ {formatCurrency(withdrawalFee)}</span>
                       </div>
                       <div className="flex justify-between text-sm font-semibold">
-                        <span style={{ color: "var(--wallet-text-secondary)" }}>Total debitado</span>
-                        <span className="text-white">R$ {formatCurrency(withdrawTotal)}</span>
+                        <span style={{ color: "var(--wallet-text-secondary)" }}>Você recebe</span>
+                        <span className="text-white">R$ {formatCurrency(withdrawNet)}</span>
                       </div>
                     </div>
                   )}
@@ -396,11 +396,11 @@ export default function Pix() {
                 </div>
 
                 {/* Insufficient balance warning */}
-                {withdrawAmountNum > 0 && withdrawTotal > (wallet?.balance ?? 0) && (
+                {withdrawAmountNum > 0 && withdrawAmountNum > (wallet?.balance ?? 0) && (
                   <div className="wallet-card p-3 flex items-center gap-2" style={{ borderColor: "var(--wallet-red)" }}>
                     <AlertCircle size={14} style={{ color: "var(--wallet-red)" }} />
                     <p className="text-xs" style={{ color: "var(--wallet-red)" }}>
-                      Saldo insuficiente. Você precisa de R$ {formatCurrency(withdrawTotal)}.
+                      Saldo insuficiente. Você possui R$ {formatCurrency(wallet?.balance ?? 0)}.
                     </p>
                   </div>
                 )}
@@ -433,7 +433,7 @@ export default function Pix() {
                   </div>
                 </div>
                 <button
-                  onClick={() => { setWithdrawResult(null); setWithdrawAmount(""); setPixKey(""); utils.wallet.getWallet.invalidate(); }}
+                  onClick={() => { setWithdrawResult(null); setWithdrawAmount(""); setPixKey(""); utils.clientAuth.myWallet.invalidate(); }}
                   className="w-full py-3 rounded-xl font-medium text-sm transition-all duration-200"
                   style={{ background: "var(--wallet-blue-surface)", color: "var(--wallet-text-secondary)", border: "1px solid var(--wallet-border)" }}
                 >

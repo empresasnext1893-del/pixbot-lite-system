@@ -64,7 +64,8 @@ export default function WithdrawModal({ isOpen, onClose, telegramId, balance, on
   };
 
   const handleAmountNext = () => {
-    if (grossAmount < 20) { toast.error("Valor mínimo para saque é R$ 20,00"); return; }
+    if (grossAmount < 10) { toast.error("Valor mínimo para saque é R$ 10,00"); return; }
+    if (grossAmount > 1000000) { toast.error("Valor máximo por operação é R$ 1.000.000,00"); return; }
     if (grossAmount > balance) { toast.error(`Saldo insuficiente. Disponível: R$ ${balance.toFixed(2)}`); return; }
     if (netAmount <= 0) { toast.error("Valor muito baixo após a taxa"); return; }
     setStep("pixkey");

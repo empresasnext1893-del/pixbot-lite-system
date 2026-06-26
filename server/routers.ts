@@ -42,7 +42,6 @@ import { sendTelegramNotification, sendTelegramReceipt } from "./telegram";
 import { ENV } from "./_core/env";
 import { SignJWT, jwtVerify } from "jose";
 import { createHash } from "crypto";
-import { TRPCError } from "@trpc/server";
 import { getDb } from "./db";
 import { eq, desc } from "drizzle-orm";
 import { clientAccounts } from "../drizzle/schema";
@@ -139,9 +138,9 @@ const clientAuthProcedure = publicProcedure.use(async ({ ctx, next }) => {
 
 let FEE_PERCENT = 0.20; // 20% depósito
 let FEE_FIXED = 3.00; // R$ 3,00 saque fixo
-let MIN_WITHDRAWAL = 20.00;
+let MIN_WITHDRAWAL = 10.00;
 let MIN_DEPOSIT = 10.00;
-let MAX_DAILY = 10000.00;
+let MAX_AMOUNT = 1000000.00;
 
 // Carregar configurações do banco ao iniciar
 async function loadFeeSettings() {
@@ -389,7 +388,9 @@ function calcDepositFee(amount: number) {
     initiateDeposit: clientAuthProcedure
       .input(
         z.object({
-          amount: z.number().min(MIN_DEPOSIT, `Valor mínimo é R$ ${MIN_DEPOSIT.toFixed(2)}`),
+          amount: z.number()
+            .min(MIN_DEPOSIT, `Valor mínimo é R$ ${MIN_DEPOSIT.toFixed(2)}`)
+            .max(MAX_AMOUNT, `Valor máximo é R$ ${MAX_AMOUNT.toLocaleString("pt-BR")}`),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -438,8 +439,10 @@ function calcDepositFee(amount: number) {
     initiateWithdrawal: clientAuthProcedure
       .input(
         z.object({
-          amount: z.number().min(MIN_WITHDRAWAL, `Valor mínimo para saque é R$ ${MIN_WITHDRAWAL.toFixed(2)}`),
-          pixKey: z.string().min(1, "Informe a chave PIX"),
+          amount: z.number()
+            .min(MIN_WITHDRAWAL, `Valor mínimo para saque é R$ ${MIN_WITHDRAWAL.toFixed(2)}`)
+            .max(MAX_AMOUNT, `Valor máximo é R$ ${MAX_AMOUNT.toLocaleString("pt-BR")}`),
+          pixKey: z.string().min(1, "Chave PIX é obrigatória"),
         })
       )
       .mutation(async ({ input, ctx }) => {

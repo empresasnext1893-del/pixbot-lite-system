@@ -102,7 +102,7 @@ async function verifyAdminJwt(token: string): Promise<boolean> {
   }
 }
 
-  // ── Admin procedure ───────────────────────────────────────────────────────────
+   // ── Admin Procedure (Refreshed) ───────────────────────────────────────────────────────────
 
 const adminProcedure = publicProcedure.use(async ({ ctx, next }) => {
   const token = ctx.req.cookies?.[ADMIN_COOKIE];

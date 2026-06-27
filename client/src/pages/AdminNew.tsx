@@ -1304,20 +1304,29 @@ export default function AdminNew() {
                         <h3 className="text-xl font-bold text-foreground">Segurança Total</h3>
                       </div>
                       <p className="text-sm text-muted-foreground leading-relaxed">
-                        Nossa plataforma foi desenvolvida com foco em **blindagem transacional**. Utilizamos tecnologia de ponta para garantir que todas as operações sejam definitivas.
+                        Nossa plataforma foi desenvolvida com foco em <strong>blindagem transacional total</strong>. Utilizamos tecnologia de ponta para garantir que todas as operações sejam definitivas, seguras e irreversíveis — protegendo você e seu negócio em cada transação.
                       </p>
-                      <ul className="space-y-3">
-                        <li className="flex items-start gap-2 text-sm">
-                          <CheckCircle className="w-4 h-4 text-success mt-0.5 shrink-0" />
-                          <span>**Zero Contestação:** Sistema imune a estornos indevidos.</span>
+                      <ul className="space-y-4">
+                        <li className="flex items-start gap-3 text-sm">
+                          <CheckCircle className="w-5 h-5 text-success mt-0.5 shrink-0" />
+                          <div>
+                            <span className="font-bold text-foreground block mb-1">Zero Contestação</span>
+                            <span className="text-xs text-muted-foreground leading-relaxed">Todas as transações realizadas em nossa plataforma são <strong className="text-foreground">definitivas e irrevogáveis</strong>. Nosso sistema é completamente imune a estornos, chargebacks e contestações indevidas — garantindo que o valor recebido permaneça em sua carteira sem qualquer risco de reversão.</span>
+                          </div>
                         </li>
-                        <li className="flex items-start gap-2 text-sm">
-                          <CheckCircle className="w-4 h-4 text-success mt-0.5 shrink-0" />
-                          <span>**Zero MED (Mecanismo Especial de Devolução):** Proteção avançada contra bloqueios e devoluções automáticas.</span>
+                        <li className="flex items-start gap-3 text-sm">
+                          <CheckCircle className="w-5 h-5 text-success mt-0.5 shrink-0" />
+                          <div>
+                            <span className="font-bold text-foreground block mb-1">Zero MED (Mecanismo Especial de Devolução)</span>
+                            <span className="text-xs text-muted-foreground leading-relaxed">Nossa infraestrutura oferece <strong className="text-foreground">proteção avançada contra bloqueios e devoluções automáticas</strong> do Banco Central. O MED não se aplica às operações realizadas aqui, eliminando o risco de devolução compulsória de valores e garantindo total controle sobre seus recursos.</span>
+                          </div>
                         </li>
-                        <li className="flex items-start gap-2 text-sm">
-                          <CheckCircle className="w-4 h-4 text-success mt-0.5 shrink-0" />
-                          <span>**Liquidez Imediata:** Seus valores ficam disponíveis para movimentação assim que confirmados.</span>
+                        <li className="flex items-start gap-3 text-sm">
+                          <CheckCircle className="w-5 h-5 text-success mt-0.5 shrink-0" />
+                          <div>
+                            <span className="font-bold text-foreground block mb-1">Liquidez Imediata</span>
+                            <span className="text-xs text-muted-foreground leading-relaxed">Assim que um depósito é confirmado, o saldo fica <strong className="text-foreground">instantaneamente disponível</strong> para movimentação, saque ou reinvestimento. Sem períodos de carência, sem bloqueios operacionais — seu dinheiro disponível quando você precisar, 24 horas por dia, 7 dias por semana.</span>
+                          </div>
                         </li>
                       </ul>
                     </div>
@@ -1364,7 +1373,7 @@ export default function AdminNew() {
                       </div>
                       <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
                         <p className="text-xs text-muted-foreground font-bold mb-1">Limite Operação</p>
-                        <p className="text-lg font-bold text-foreground">R$ 1.000.000,00</p>
+                        <p className="text-lg font-bold text-foreground">R$ 50.000,00</p>
                         <p className="text-[10px] text-muted-foreground mt-1">Limite de segurança</p>
                       </div>
                     </div>

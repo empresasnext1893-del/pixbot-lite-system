@@ -310,9 +310,100 @@ export default function HomeNew() {
 
 
           {tab === "support" && (
-            <motion.div key="support" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="container max-w-md mx-auto py-6 px-4 pb-24 space-y-5">
-              <div className="text-center space-y-1"><h2 className="text-xl font-bold text-foreground">Suporte 24h</h2><p className="text-[10px] text-muted-foreground">Atendimento via Telegram</p></div>
-              <Button className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold text-sm shadow-lg shadow-primary/20 flex items-center justify-center gap-2" onClick={() => window.open("https://t.me/pixbot_suporte_oficial", "_blank")}><Send className="w-5 h-5" /> Abrir Chat no Telegram</Button>
+            <motion.div key="about" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="container max-w-md mx-auto py-6 px-4 pb-24 space-y-5">
+              <div className="text-center space-y-1">
+                <h2 className="text-xl font-bold text-foreground">Sobre a Plataforma</h2>
+                <p className="text-[10px] text-muted-foreground">Conheça nossos diferenciais e regras</p>
+              </div>
+              
+              <div className="space-y-4">
+                {/* Card: Segurança Total */}
+                <div className="glass p-5 rounded-2xl border-white/10 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Shield className="w-4 h-4 text-primary" />
+                    </div>
+                    <h4 className="font-bold text-sm">Segurança Total</h4>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Nossa plataforma foi desenvolvida com foco em **blindagem transacional**. Garantimos que todas as operações sejam definitivas.
+                  </p>
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2 text-[10px]">
+                      <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 shrink-0" />
+                      <span>**Zero Contestação:** Sistema imune a estornos indevidos.</span>
+                    </li>
+                    <li className="flex items-start gap-2 text-[10px]">
+                      <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 shrink-0" />
+                      <span>**Zero MED:** Proteção contra bloqueios e devoluções automáticas.</span>
+                    </li>
+                    <li className="flex items-start gap-2 text-[10px]">
+                      <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 shrink-0" />
+                      <span>**Liquidez Imediata:** Valores disponíveis assim que confirmados.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Card: Taxas */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="glass p-4 rounded-2xl border-white/10">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="w-3 h-3 text-yellow-500" />
+                      <p className="text-[9px] text-muted-foreground uppercase font-bold">Depósito</p>
+                    </div>
+                    <p className="text-xl font-black text-primary">{(account as any)?.customDepositFeePercent ?? (account as any)?.globalSettings?.depositFeePercent ?? "20"}%</p>
+                    <p className="text-[8px] text-muted-foreground mt-1">Taxa automática</p>
+                  </div>
+                  <div className="glass p-4 rounded-2xl border-white/10">
+                    <div className="flex items-center gap-2 mb-2">
+                      <DollarSign className="w-3 h-3 text-white" />
+                      <p className="text-[9px] text-muted-foreground uppercase font-bold">Saque</p>
+                    </div>
+                    <p className="text-xl font-black text-white">R$ {Number((account as any)?.customWithdrawalFeeFixed ?? (account as any)?.globalSettings?.withdrawalFeeFixed ?? 3.00).toFixed(2).replace(".", ",")}</p>
+                    <p className="text-[8px] text-muted-foreground mt-1">Valor fixo</p>
+                  </div>
+                </div>
+
+                {/* Card: Limites */}
+                <div className="glass p-5 rounded-2xl border-white/10 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <Calendar className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <h4 className="font-bold text-sm">Limites Operacionais</h4>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center text-[10px] p-2 rounded-lg bg-white/5">
+                      <span className="text-muted-foreground">Depósito Mínimo</span>
+                      <span className="font-bold text-foreground">R$ {Number((account as any)?.customMinDeposit ?? (account as any)?.globalSettings?.minDeposit ?? 10).toFixed(2).replace(".", ",")}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] p-2 rounded-lg bg-white/5">
+                      <span className="text-muted-foreground">Saque Mínimo</span>
+                      <span className="font-bold text-foreground">R$ {Number((account as any)?.customMinWithdrawal ?? (account as any)?.globalSettings?.minWithdrawal ?? 10).toFixed(2).replace(".", ",")}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] p-2 rounded-lg bg-white/5">
+                      <span className="text-muted-foreground">Limite por Operação</span>
+                      <span className="font-bold text-foreground">R$ 1.000.000,00</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card: Suporte Integrado */}
+                <div className="glass p-5 rounded-2xl border-primary/20 bg-primary/5 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <MessageCircle className="w-4 h-4 text-primary" />
+                    </div>
+                    <h4 className="font-bold text-sm">Suporte 24h</h4>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Precisa de ajuda ou quer aumentar seus limites? Nosso time está disponível no Telegram para te atender.
+                  </p>
+                  <Button className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs shadow-lg shadow-primary/20 flex items-center justify-center gap-2" onClick={() => window.open("https://t.me/pixbot_suporte_oficial", "_blank")}>
+                    <Send className="w-4 h-4" /> Falar com Suporte
+                  </Button>
+                </div>
+              </div>
             </motion.div>
           )}
 
@@ -411,8 +502,8 @@ export default function HomeNew() {
                 { id: "home", icon: HomeIcon, label: "Início" }, 
                 { id: "history", icon: History, label: "Extrato" },
                 { id: "referral", icon: Gift, label: "Convite" }, 
-                { id: "support", icon: MessageCircle, label: "Suporte" } 
-              ].map((item) => (
+              { id: "support", icon: Info, label: "Sobre" } 
+            ].map((item) => (
                 <button key={item.id} onClick={() => setTab(item.id as Tab)} className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 rounded-xl transition-all duration-300 ${tab === item.id ? "bg-primary text-white shadow-md shadow-primary/20" : "text-muted-foreground hover:text-foreground"}`}>
                   <item.icon className="w-4 h-4" /> <span className="text-[8px] font-bold uppercase tracking-tighter">{item.label}</span>
                 </button>

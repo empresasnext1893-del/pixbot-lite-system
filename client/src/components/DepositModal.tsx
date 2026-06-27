@@ -69,7 +69,7 @@ export default function DepositModal({ isOpen, onClose, telegramId, telegramName
   };
 
   const handleSubmit = () => {
-    const val = parseFloat(amount.replace(",", "."));
+    const val = parseFloat(amount.replace(/\./g, "").replace(",", "."));
     if (isNaN(val) || val <= 0) {
       toast.error("Informe um valor válido");
       return;

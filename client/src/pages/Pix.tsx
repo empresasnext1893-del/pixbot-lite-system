@@ -106,7 +106,7 @@ export default function Pix() {
   }
 
   const handleDeposit = () => {
-    const amount = parseFloat(depositAmount.replace(",", "."));
+    const amount = parseFloat(depositAmount.replace(/\./g, "").replace(",", "."));
     if (isNaN(amount) || amount <= 0) {
       toast.error("Informe um valor válido");
       return;
@@ -115,7 +115,7 @@ export default function Pix() {
   };
 
   const handleWithdrawal = () => {
-    const amount = parseFloat(withdrawAmount.replace(",", "."));
+    const amount = parseFloat(withdrawAmount.replace(/\./g, "").replace(",", "."));
     if (isNaN(amount) || amount <= 0) {
       toast.error("Informe um valor válido");
       return;
@@ -137,11 +137,11 @@ export default function Pix() {
 
   const depositFee = 20;
   const withdrawalFee = 3;
-  const depositAmountNum = parseFloat(depositAmount.replace(",", ".")) || 0;
+  const depositAmountNum = parseFloat(depositAmount.replace(/\./g, "").replace(",", ".")) || 0;
   const depositFeeValue = parseFloat(Number(depositAmountNum * (depositFee / 100)).toFixed(2));
   const depositNet = parseFloat(Number(depositAmountNum - depositFeeValue).toFixed(2));
 
-  const withdrawAmountNum = parseFloat(withdrawAmount.replace(",", ".")) || 0;
+  const withdrawAmountNum = parseFloat(withdrawAmount.replace(/\./g, "").replace(",", ".")) || 0;
   // O valor total debitado é o próprio valor bruto inserido, a taxa é subtraída dele
   const withdrawTotal = withdrawAmountNum;
   const withdrawNet = Math.max(0, withdrawAmountNum - withdrawalFee);

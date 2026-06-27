@@ -6,7 +6,8 @@ import {
   CheckCircle, XCircle, DollarSign, TrendingUp, AlertTriangle,
   ChevronDown, ChevronUp, Loader2, RefreshCw, Search,
   BarChart3, Wallet, Shield, Mail, MessageCircle, Calendar,
-  UserCheck, UserX, Eye, Copy, Check, X, Plus, Minus, Send
+  UserCheck, UserX, Eye, Copy, Check, X, Plus, Minus, Send,
+  History, Activity
 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
-type AdminTab = "dashboard" | "transactions" | "clients" | "wallets" | "admin-account" | "settings" | "about";
+type AdminTab = "dashboard" | "transactions" | "clients" | "wallets" | "admin-account" | "settings" | "about" | "audit-logs";
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
   pending: { label: "Pendente", color: "oklch(0.80 0.15 80)", bg: "oklch(0.18 0.06 80 / 0.3)" },
@@ -183,6 +184,7 @@ export default function AdminNew() {
   const adminWalletQuery = trpc.admin.getAdminWallet.useQuery(undefined, { enabled: isAdmin });
   const taxSettingsQuery = trpc.admin.getTaxSettings.useQuery(undefined, { enabled: isAdmin });
   const chartDataQuery = trpc.admin.chartData.useQuery({ days: 30 }, { enabled: isAdmin, refetchInterval: 60_000 });
+  const auditLogsQuery = trpc.admin.auditLogs.useQuery({ limit: 200 }, { enabled: isAdmin && activeTab === "audit-logs", refetchInterval: 30_000 });
 
   const utils = trpc.useUtils();
 
@@ -228,7 +230,7 @@ export default function AdminNew() {
 
   const approveWithdrawMutation = trpc.admin.approveTransaction.useMutation({
     onSuccess: () => {
-      toast.success("Saque aprovado!");
+      toast.success("Saque aprovado com sucesso! O cliente recebera o valor em sua chave PIX.");
       utils.admin.transactions.invalidate();
       utils.admin.pendingTransactions.invalidate();
       utils.admin.advancedStats.invalidate();
@@ -239,7 +241,7 @@ export default function AdminNew() {
 
   const approveDepositMutation = trpc.admin.approveDeposit.useMutation({
     onSuccess: () => {
-      toast.success("Depósito confirmado!");
+      toast.success("Deposito confirmado com sucesso! O saldo do cliente foi atualizado.");
       utils.admin.transactions.invalidate();
       utils.admin.pendingTransactions.invalidate();
       utils.admin.advancedStats.invalidate();
@@ -341,6 +343,7 @@ export default function AdminNew() {
     { id: "transactions" as AdminTab, icon: BarChart3, label: "Transações", badge: pendingTx.length },
     { id: "clients" as AdminTab, icon: Users, label: "Clientes", badge: clients.length },
     { id: "wallets" as AdminTab, icon: Wallet, label: "Carteiras" },
+    { id: "audit-logs" as AdminTab, icon: History, label: "Histórico de Atividades" },
     { id: "settings" as AdminTab, icon: Shield, label: "Configurações" },
     { id: "about" as AdminTab, icon: Shield, label: "Sobre a Plataforma" },
   ];
@@ -1340,6 +1343,75 @@ export default function AdminNew() {
                         </div>
                       </div>
                     </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ── HISTÓRICO DE ATIVIDADES ── */}
+              {activeTab === "audit-logs" && (
+                <motion.div key="audit-logs" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h1 className="text-3xl font-bold text-foreground">Histórico de Atividades</h1>
+                      <p className="text-muted-foreground text-sm">Registro completo de todas as ações do sistema</p>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => { auditLogsQuery.refetch(); }} className="gap-1.5 text-muted-foreground">
+                      <RefreshCw className="w-4 h-4" />
+                      Atualizar
+                    </Button>
+                  </div>
+
+                  {/* Tabela de Audit Logs */}
+                  <div className="rounded-2xl overflow-hidden backdrop-blur-md" style={{ background: "oklch(0.12 0.03 250 / 0.8)", border: "1px solid oklch(0.22 0.05 250 / 0.5)" }}>
+                    {auditLogsQuery.isLoading ? (
+                      <div className="h-64 flex items-center justify-center">
+                        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : auditLogsQuery.data && auditLogsQuery.data.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr style={{ background: "oklch(0.10 0.03 250 / 0.8)", borderBottom: "1px solid oklch(0.22 0.05 250 / 0.5)" }}>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">Data/Hora</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">Ação</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">Tipo</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">Detalhes</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground">IP</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {auditLogsQuery.data.map((log: any, idx: number) => (
+                              <tr key={log.id} style={{ borderBottom: idx < auditLogsQuery.data.length - 1 ? "1px solid oklch(0.22 0.05 250 / 0.3)" : "none" }}>
+                                <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                                  {new Date(log.createdAt).toLocaleString("pt-BR")}
+                                </td>
+                                <td className="px-4 py-3 text-xs font-medium text-foreground">
+                                  <span className="px-2 py-1 rounded-lg" style={{ background: "oklch(0.18 0.06 250 / 0.4)", color: "oklch(0.75 0.18 250)" }}>
+                                    {log.action}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-xs text-muted-foreground">
+                                  {log.targetType || "—"}
+                                </td>
+                                <td className="px-4 py-3 text-xs text-muted-foreground max-w-xs truncate" title={log.details}>
+                                  {log.details || "—"}
+                                </td>
+                                <td className="px-4 py-3 text-xs text-muted-foreground font-mono">
+                                  {log.ipAddress || "—"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="h-64 flex items-center justify-center text-muted-foreground">
+                        <div className="text-center">
+                          <Activity className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                          <p>Nenhuma atividade registrada</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}

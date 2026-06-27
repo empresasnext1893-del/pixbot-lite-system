@@ -30,7 +30,7 @@ export default function AuthPage() {
     try {
       if (mode === "login") {
         await login(email, password);
-        toast.success("Login realizado com sucesso!");
+        toast.success(`Bem-vindo de volta! Login realizado com sucesso para ${email}.`);
         navigate("/wallet");
       } else {
         if (password !== confirm) {
@@ -38,7 +38,7 @@ export default function AuthPage() {
           return;
         }
         await register(name, email, password);
-        toast.success("Conta criada! Bem-vindo(a)!");
+        toast.success(`Conta criada com sucesso! Bem-vindo(a), ${name}! Você já está logado(a).`);
         navigate("/wallet");
       }
     } catch (err: any) {

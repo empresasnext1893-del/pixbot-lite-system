@@ -505,6 +505,17 @@ export async function createAuditLog(data: {
   await db.insert(auditLogs).values(data);
 }
 
+export async function getAuditLogs(limit = 200) {
+  const db = await getDb();
+  if (!db) return [];
+  const { auditLogs } = await import("../drizzle/schema");
+  return db
+    .select()
+    .from(auditLogs)
+    .orderBy(sql`${auditLogs.createdAt} DESC`)
+    .limit(limit);
+}
+
 // ── Chart Data (últimos N dias) ─────────────────────────────────────────────
 
 export async function getDailyChartData(days = 30) {

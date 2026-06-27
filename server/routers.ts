@@ -37,6 +37,7 @@ import {
   getAllSettings,
   getDailyChartData,
   createAuditLog,
+  getAuditLogs,
 } from "./db";
 import { sendTelegramNotification, sendTelegramReceipt } from "./telegram";
 import { ENV } from "./_core/env";
@@ -904,6 +905,12 @@ function calcDepositFee(amount: number, clientAccount?: typeof clientAccounts.$i
           .where(eq(clientAccounts.id, input.clientId));
         
         return { success: true };
+      }),
+
+    auditLogs: adminProcedure
+      .input(z.object({ limit: z.number().min(1).max(500).default(200) }))
+      .query(async ({ input }) => {
+        return getAuditLogs(input.limit);
       }),
   }),
 });

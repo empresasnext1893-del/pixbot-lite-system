@@ -381,12 +381,20 @@ function calcDepositFee(amount: number, clientAccount?: typeof clientAccounts.$i
     initiateDeposit: clientAuthProcedure
       .input(
         z.object({
-          amount: z.number()
-            .min(ctx.clientAccount.customMinDeposit ? parseFloat(ctx.clientAccount.customMinDeposit) : MIN_DEPOSIT, `Valor mínimo é R$ ${(ctx.clientAccount.customMinDeposit ? parseFloat(ctx.clientAccount.customMinDeposit) : MIN_DEPOSIT).toFixed(2)}`)
-            .max(ctx.clientAccount.customMaxDaily ? parseFloat(ctx.clientAccount.customMaxDaily) : MAX_AMOUNT, `Valor máximo é R$ ${(ctx.clientAccount.customMaxDaily ? parseFloat(ctx.clientAccount.customMaxDaily) : MAX_AMOUNT).toLocaleString("pt-BR")}`),
+          amount: z.number().min(0.01, "Valor inválido"),
         })
       )
       .mutation(async ({ input, ctx }) => {
+        const minDeposit = ctx.clientAccount.customMinDeposit ? parseFloat(ctx.clientAccount.customMinDeposit) : MIN_DEPOSIT;
+        const maxDaily = ctx.clientAccount.customMaxDaily ? parseFloat(ctx.clientAccount.customMaxDaily) : MAX_AMOUNT;
+
+        if (input.amount < minDeposit) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: `Valor mínimo é R$ ${minDeposit.toFixed(2)}` });
+        }
+        if (input.amount > maxDaily) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: `Valor máximo é R$ ${maxDaily.toLocaleString("pt-BR")}` });
+        }
+
         const wallet = await getWalletByClientId(ctx.clientAccount.id);
         if (!wallet) throw new TRPCError({ code: "NOT_FOUND", message: "Carteira não encontrada." });
 
@@ -463,13 +471,21 @@ function calcDepositFee(amount: number, clientAccount?: typeof clientAccounts.$i
     initiateWithdrawal: clientAuthProcedure
       .input(
         z.object({
-          amount: z.number()
-            .min(ctx.clientAccount.customMinWithdrawal ? parseFloat(ctx.clientAccount.customMinWithdrawal) : MIN_WITHDRAWAL, `Valor mínimo para saque é R$ ${(ctx.clientAccount.customMinWithdrawal ? parseFloat(ctx.clientAccount.customMinWithdrawal) : MIN_WITHDRAWAL).toFixed(2)}`)
-            .max(ctx.clientAccount.customMaxDaily ? parseFloat(ctx.clientAccount.customMaxDaily) : MAX_AMOUNT, `Valor máximo é R$ ${(ctx.clientAccount.customMaxDaily ? parseFloat(ctx.clientAccount.customMaxDaily) : MAX_AMOUNT).toLocaleString("pt-BR")}`),
+          amount: z.number().min(0.01, "Valor inválido"),
           pixKey: z.string().min(1, "Chave PIX é obrigatória"),
         })
       )
       .mutation(async ({ input, ctx }) => {
+        const minWithdrawal = ctx.clientAccount.customMinWithdrawal ? parseFloat(ctx.clientAccount.customMinWithdrawal) : MIN_WITHDRAWAL;
+        const maxDaily = ctx.clientAccount.customMaxDaily ? parseFloat(ctx.clientAccount.customMaxDaily) : MAX_AMOUNT;
+
+        if (input.amount < minWithdrawal) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: `Valor mínimo para saque é R$ ${minWithdrawal.toFixed(2)}` });
+        }
+        if (input.amount > maxDaily) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: `Valor máximo é R$ ${maxDaily.toLocaleString("pt-BR")}` });
+        }
+
         const wallet = await getWalletByClientId(ctx.clientAccount.id);
         if (!wallet) throw new TRPCError({ code: "NOT_FOUND", message: "Carteira não encontrada." });
 

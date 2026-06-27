@@ -631,8 +631,10 @@ function calcDepositFee(amount: number) {
         }
 
         await updateTransactionStatus(tx.id, "rejected", input.note);
-        // Refund balance
-        await updateWalletBalance(tx.walletId, parseFloat(String(tx.amount)), 0, 0);
+        // Se for um saque, reembolsar o saldo. Depósitos pendentes não afetam o saldo até serem aprovados.
+        if (tx.type === "withdrawal") {
+          await updateWalletBalance(tx.walletId, parseFloat(String(tx.amount)), 0, 0);
+        }
 
         // Audit Log
         await createAuditLog({

@@ -45,28 +45,28 @@ function CopyBtn({ text }: { text: string }) {
 function MoneyBackground() {
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      {/* Camada Base Estática - Muito mais clara agora */}
+      {/* Camada Base Estática - Clareza Máxima HD */}
       <div
         className="absolute inset-0"
         style={{
           backgroundImage: "url('/assets/money_bg.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "brightness(0.7) saturate(1.5) contrast(1.1)",
+          filter: "brightness(0.9) saturate(1.4) contrast(1.15)",
         }}
       />
 
-      {/* Camada de Movimento 3D / Parallax Animado - Visível e nítida */}
+      {/* Camada de Movimento 3D / Parallax Animado - Alta Definição */}
       <motion.div
         className="absolute inset-[-10%]"
         animate={{
-          x: [-20, 20, -20],
-          y: [-20, 10, -20],
-          rotate: [0, 1, -1, 0],
-          scale: [1.1, 1.15, 1.1],
+          x: [-15, 15, -15],
+          y: [-15, 8, -15],
+          rotate: [0, 0.5, -0.5, 0],
+          scale: [1.05, 1.1, 1.05],
         }}
         transition={{
-          duration: 20,
+          duration: 25,
           repeat: Infinity,
           ease: "linear",
         }}
@@ -74,29 +74,29 @@ function MoneyBackground() {
           backgroundImage: "url('/assets/money_bg.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "brightness(0.8) saturate(1.6)",
-          opacity: 0.5,
+          filter: "brightness(0.95) saturate(1.5)",
+          opacity: 0.4,
         }}
       />
 
-      {/* Camada de Partículas/Brilho Flutuante - Suave para não escurecer */}
+      {/* Camada de Brilho Sutil - Sem escurecer nada */}
       <motion.div
         className="absolute inset-0"
         animate={{
-          opacity: [0.1, 0.3, 0.1],
+          opacity: [0.05, 0.15, 0.05],
         }}
         transition={{
-          duration: 8,
+          duration: 10,
           repeat: Infinity,
           ease: "easeInOut",
         }}
         style={{
-          background: "radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.2) 100%)",
+          background: "radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.1) 100%)",
         }}
       />
       
-      {/* Overlay de Vinheta - Mais suave para não tampar o fundo */}
-      <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]" />
+      {/* Overlay de Vinheta - Quase imperceptível para manter a imagem limpa */}
+      <div className="absolute inset-0 shadow-[inset_0_0_80px_rgba(0,0,0,0.3)]" />
     </div>
   );
 }

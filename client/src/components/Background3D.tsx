@@ -40,14 +40,14 @@ export default function Background3D() {
         const autoMoveY = Math.cos(s.time * 0.2) * 10;
         const autoRotate = Math.sin(s.time * 0.15) * 1.5;
         
-        // Apenas brilho pulsante, sem desfoque (Blur removido)
-        const brightness = 0.65 + (Math.sin(s.time * 0.5) + 1) * 0.1; // oscila entre 0.65 e 0.85
+        // Clareza Máxima HD e Brilho Natural
+        const brightness = 0.85 + (Math.sin(s.time * 0.5) + 1) * 0.05; // oscila entre 0.85 e 0.95 (MUITO claro)
         
         const px = s.mouseX * 25 + autoMoveX;
         const py = s.mouseY * 18 + autoMoveY;
         
         bgEl.style.transform = `scale(1.2) translate(${px}px, ${py}px) rotate(${autoRotate}deg)`;
-        bgEl.style.filter = `brightness(${brightness}) saturate(1.6) contrast(1.1)`;
+        bgEl.style.filter = `brightness(${brightness}) saturate(1.4) contrast(1.15)`;
       }
 
       // Notas de dinheiro flutuantes (efeito desfalque/queda suave)
@@ -126,12 +126,12 @@ export default function Background3D() {
         }}
       />
 
-      {/* Overlay escuro MUITO MAIS SUAVE — para destacar o dinheiro */}
+      {/* Overlay de transparência mínima para clareza total */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 35%, rgba(0,0,0,0.15) 70%, rgba(0,0,0,0.4) 100%)",
+            "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, transparent 35%, transparent 70%, rgba(0,0,0,0.2) 100%)",
         }}
       />
 

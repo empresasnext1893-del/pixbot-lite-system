@@ -96,6 +96,12 @@ export default function AdminNew() {
   const [clientBalanceAmount, setClientBalanceAmount] = useState("");
   const [clientBalanceReason, setClientBalanceReason] = useState("");
   const [selectedClientForBalance, setSelectedClientForBalance] = useState<number | null>(null);
+  const [selectedClientForFees, setSelectedClientForFees] = useState<number | null>(null);
+  const [customDepositFee, setCustomDepositFee] = useState("");
+  const [customWithdrawalFee, setCustomWithdrawalFee] = useState("");
+  const [customMinDeposit, setCustomMinDeposit] = useState("");
+  const [customMinWithdrawal, setCustomMinWithdrawal] = useState("");
+  const [customMaxDaily, setCustomMaxDaily] = useState("");
 
   const adminSessionQuery = trpc.adminAuth.checkAdminSession.useQuery(undefined, {
     retry: false,
@@ -218,6 +224,15 @@ export default function AdminNew() {
     onSuccess: () => {
       toast.success("Configurações atualizadas!");
       utils.admin.getTaxSettings.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const updateClientFeesMutation = trpc.admin.updateClientFees.useMutation({
+    onSuccess: () => {
+      toast.success("Taxas personalizadas do cliente atualizadas!");
+      setSelectedClientForFees(null);
+      utils.admin.clientAccounts.invalidate();
     },
     onError: (err) => toast.error(err.message),
   });
@@ -854,9 +869,31 @@ export default function AdminNew() {
                       >
                         <div className="flex items-center justify-between mb-4">
                           <h3 className="font-bold text-foreground text-lg">Detalhes: {selectedClientData.name}</h3>
-                          <button onClick={() => setSelectedClient(null)} className="text-muted-foreground hover:text-foreground">
-                            <X className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const c = selectedClientData;
+                                if (c) {
+                                  setCustomDepositFee(c.customDepositFeePercent ? String(c.customDepositFeePercent) : "");
+                                  setCustomWithdrawalFee(c.customWithdrawalFeeFixed ? String(c.customWithdrawalFeeFixed) : "");
+                                  setCustomMinDeposit(c.customMinDeposit ? String(c.customMinDeposit) : "");
+                                  setCustomMinWithdrawal(c.customMinWithdrawal ? String(c.customMinWithdrawal) : "");
+                                  setCustomMaxDaily(c.customMaxDaily ? String(c.customMaxDaily) : "");
+                                  setSelectedClientForFees(c.id);
+                                }
+                              }}
+                              className="gap-2"
+                              style={{ borderColor: "oklch(0.70 0.18 145 / 0.4)", color: "oklch(0.70 0.18 145)" }}
+                            >
+                              <TrendingUp className="w-4 h-4" />
+                              Taxas Personalizadas
+                            </Button>
+                            <button onClick={() => setSelectedClient(null)} className="text-muted-foreground hover:text-foreground">
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           <div>
@@ -897,6 +934,109 @@ export default function AdminNew() {
                             </p>
                           </div>
                         </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Modal de Taxas Personalizadas */}
+                  <AnimatePresence>
+                    {selectedClientForFees && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                        onClick={() => setSelectedClientForFees(null)}
+                      >
+                        <motion.div
+                          className="w-full max-w-md rounded-3xl p-8 space-y-6 relative"
+                          style={{ background: "oklch(0.12 0.03 250)", border: "1px solid oklch(0.50 0.22 250 / 0.3)" }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-xl font-bold text-foreground">Taxas Personalizadas</h3>
+                            <button onClick={() => setSelectedClientForFees(null)} className="text-muted-foreground hover:text-white transition-colors">
+                              <X className="w-6 h-6" />
+                            </button>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1.5 block">Taxa Depósito (%)</label>
+                                <Input
+                                  type="number"
+                                  placeholder="Padrão (20%)"
+                                  value={customDepositFee}
+                                  onChange={(e) => setCustomDepositFee(e.target.value)}
+                                  className="glass"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1.5 block">Taxa Saque (Fixo R$)</label>
+                                <Input
+                                  type="number"
+                                  placeholder="Padrão (R$ 3,00)"
+                                  value={customWithdrawalFee}
+                                  onChange={(e) => setCustomWithdrawalFee(e.target.value)}
+                                  className="glass"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1.5 block">Depósito Mínimo (R$)</label>
+                                <Input
+                                  type="number"
+                                  placeholder="Padrão"
+                                  value={customMinDeposit}
+                                  onChange={(e) => setCustomMinDeposit(e.target.value)}
+                                  className="glass"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground mb-1.5 block">Saque Mínimo (R$)</label>
+                                <Input
+                                  type="number"
+                                  placeholder="Padrão"
+                                  value={customMinWithdrawal}
+                                  onChange={(e) => setCustomMinWithdrawal(e.target.value)}
+                                  className="glass"
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="text-xs text-muted-foreground mb-1.5 block">Limite Máximo Diário (R$)</label>
+                              <Input
+                                type="number"
+                                placeholder="Padrão (R$ 10.000,00)"
+                                value={customMaxDaily}
+                                onChange={(e) => setCustomMaxDaily(e.target.value)}
+                                className="glass"
+                              />
+                            </div>
+                          </div>
+
+                          <Button
+                            className="w-full py-6 rounded-2xl font-bold text-lg transition-all"
+                            style={{ background: "oklch(0.50 0.22 250)", color: "white" }}
+                            onClick={() => {
+                              updateClientFeesMutation.mutate({
+                                clientId: selectedClientForFees,
+                                customDepositFeePercent: customDepositFee !== "" ? parseFloat(customDepositFee) : undefined,
+                                customWithdrawalFeeFixed: customWithdrawalFee !== "" ? parseFloat(customWithdrawalFee) : undefined,
+                                customMinDeposit: customMinDeposit !== "" ? parseFloat(customMinDeposit) : undefined,
+                                customMinWithdrawal: customMinWithdrawal !== "" ? parseFloat(customMinWithdrawal) : undefined,
+                                customMaxDaily: customMaxDaily !== "" ? parseFloat(customMaxDaily) : undefined,
+                              });
+                            }}
+                            disabled={updateClientFeesMutation.isPending}
+                          >
+                            {updateClientFeesMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Salvar Configurações"}
+                          </Button>
+                        </motion.div>
                       </motion.div>
                     )}
                   </AnimatePresence>

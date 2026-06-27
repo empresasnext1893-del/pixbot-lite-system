@@ -102,7 +102,14 @@ export default function AdminNew() {
   const statsQuery = trpc.admin.advancedStats.useQuery(undefined, { enabled: isAdmin, refetchInterval: 30_000 });
   const transactionsQuery = trpc.admin.transactions.useQuery({ limit: 300 }, { enabled: isAdmin });
   const pendingQuery = trpc.admin.pendingTransactions.useQuery(undefined, { enabled: isAdmin, refetchInterval: 15_000 });
-  const clientsQuery = trpc.admin.clientAccounts.useQuery({ limit: 300 }, { enabled: isAdmin });
+  const clientsQuery = trpc.admin.clientAccounts.useQuery({ limit: 300 }, { 
+    enabled: isAdmin,
+    onError: (err) => {
+      if (err.data?.code === "UNAUTHORIZED") {
+        toast.error("Sessão de administrador expirada. Por favor, faça login novamente.");
+      }
+    }
+  });
   const walletsQuery = trpc.admin.wallets.useQuery({ limit: 300 }, { enabled: isAdmin });
   const adminWalletQuery = trpc.admin.getAdminWallet.useQuery(undefined, { enabled: isAdmin });
   const taxSettingsQuery = trpc.admin.getTaxSettings.useQuery(undefined, { enabled: isAdmin });

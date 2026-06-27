@@ -198,17 +198,7 @@ function calcDepositFee(amount: number) {
   // ── Admin OAuth auth ──────────────────────────────────────────────────────
   auth: router({
     me: publicProcedure.query((opts) => {
-      // Mock de usuário admin para o sandbox
-      if (!opts.ctx.user) {
-        return {
-          id: 999,
-          openId: "admin-sandbox",
-          name: "Administrador Teste",
-          email: "admin@teste.com",
-          role: "admin",
-        };
-      }
-      return opts.ctx.user;
+      return opts.ctx.user || null;
     }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);

@@ -32,7 +32,7 @@ export default function HomeNew() {
   const [showBalance, setShowBalance] = useState(true);
   const [, navigate] = useLocation();
 
-  const { account, wallet: clientWallet, isAuthenticated, logout } = useClientAuth();
+  const { account, wallet: clientWallet, isAuthenticated, logout, session } = useClientAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -403,8 +403,8 @@ export default function HomeNew() {
           )}
         </AnimatePresence>
 
-        {/* Bottom Nav - Só aparece se estiver autenticado */}
-        {isAuthenticated && (
+        {/* Bottom Nav - Só aparece se estiver autenticado e NÃO estiver na tela de boas-vindas */}
+        {isAuthenticated && session && (
           <nav className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 w-full max-w-sm">
             <div className="glass rounded-[1.5rem] p-1.5 flex items-center shadow-2xl border border-white/10 bg-black/40 backdrop-blur-xl">
               {[

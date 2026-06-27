@@ -165,7 +165,10 @@ export default function DepositModal({ isOpen, onClose, telegramId, telegramName
                           autoFocus
                         />
                       </div>
-                      <p className="text-xs text-muted-foreground mt-2">Mínimo: R$ 10,00 • Taxa de processamento: 20%</p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Mínimo: R$ {(account as any)?.customMinDeposit || "10,00"} • 
+                        Taxa de processamento: {(account as any)?.customDepositFeePercent || "20"}%
+                      </p>
                     </div>
 
                     {/* Valores rápidos */}

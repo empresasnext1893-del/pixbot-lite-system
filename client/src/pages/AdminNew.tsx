@@ -739,6 +739,21 @@ export default function AdminNew() {
 
                           <div className="col-span-1 flex justify-end gap-1">
                             <button
+                              onClick={() => {
+                                setCustomDepositFee(client.customDepositFeePercent ? String(client.customDepositFeePercent) : "");
+                                setCustomWithdrawalFee(client.customWithdrawalFeeFixed ? String(client.customWithdrawalFeeFixed) : "");
+                                setCustomMinDeposit(client.customMinDeposit ? String(client.customMinDeposit) : "");
+                                setCustomMinWithdrawal(client.customMinWithdrawal ? String(client.customMinWithdrawal) : "");
+                                setCustomMaxDaily(client.customMaxDaily ? String(client.customMaxDaily) : "");
+                                setSelectedClientForFees(client.id);
+                              }}
+                              className="p-1.5 rounded-lg transition-colors hover:bg-white/10"
+                              style={{ color: "oklch(0.70 0.18 145)" }}
+                              title="Taxas Personalizadas"
+                            >
+                              <TrendingUp className="w-4 h-4" />
+                            </button>
+                            <button
                               onClick={() => setSelectedClientForBalance(selectedClientForBalance === client.id ? null : client.id)}
                               className="p-1.5 rounded-lg transition-colors hover:bg-white/10"
                               style={{ color: "oklch(0.55 0.10 250)" }}

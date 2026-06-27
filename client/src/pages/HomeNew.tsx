@@ -437,6 +437,7 @@ export default function HomeNew() {
           onClose={() => setShowDeposit(false)} 
           telegramId={account?.telegramId || ""} 
           telegramName={account?.name}
+          account={account}
           onSuccess={() => {
             walletQuery.refetch();
             historyQuery.refetch();
@@ -447,6 +448,7 @@ export default function HomeNew() {
           onClose={() => setShowWithdraw(false)} 
           telegramId={account?.telegramId || ""} 
           balance={wallet ? parseFloat(String(wallet.balance)) : 0}
+          account={account}
           onSuccess={() => {
             walletQuery.refetch();
             historyQuery.refetch();

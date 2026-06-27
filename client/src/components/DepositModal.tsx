@@ -12,11 +12,12 @@ interface DepositModalProps {
   telegramId: string;
   telegramName?: string;
   onSuccess: () => void;
+  account?: any;
 }
 
 type Step = "amount" | "qrcode" | "success";
 
-export default function DepositModal({ isOpen, onClose, telegramId, telegramName, onSuccess }: DepositModalProps) {
+export default function DepositModal({ isOpen, onClose, telegramId, telegramName, onSuccess, account }: DepositModalProps) {
   const [step, setStep] = useState<Step>("amount");
   const [amount, setAmount] = useState("");
   const [copied, setCopied] = useState(false);

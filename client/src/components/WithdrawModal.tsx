@@ -12,11 +12,12 @@ interface WithdrawModalProps {
   telegramId: string;
   balance: number;
   onSuccess: () => void;
+  account?: any;
 }
 
 type Step = "amount" | "pixkey" | "confirm" | "success";
 
-export default function WithdrawModal({ isOpen, onClose, telegramId, balance, onSuccess }: WithdrawModalProps) {
+export default function WithdrawModal({ isOpen, onClose, telegramId, balance, onSuccess, account }: WithdrawModalProps) {
   const [step, setStep] = useState<Step>("amount");
   const [amount, setAmount] = useState("");
   const [pixKey, setPixKey] = useState("");

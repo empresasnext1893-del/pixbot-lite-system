@@ -136,8 +136,8 @@ const clientAuthProcedure = publicProcedure.use(async ({ ctx, next }) => {
 
 // ── Fee calculation ───────────────────────────────────────────────────────────
 
-let FEE_PERCENT = 0.20; // 20% depósito
-let FEE_FIXED = 3.00; // R$ 3,00 saque fixo
+let FEE_PERCENT = 0.20; // 20% depósito padrão
+let FEE_FIXED = 3.00; // R$ 3,00 saque fixo padrão
 let MIN_WITHDRAWAL = 10.00;
 let MIN_DEPOSIT = 10.00;
 let MAX_AMOUNT = 1000000.00;

@@ -151,11 +151,26 @@ async function loadFeeSettings() {
     const minW = await getSetting("min_withdrawal");
     const minD = await getSetting("min_deposit");
     const maxD = await getSetting("max_daily");
-    if (dp) FEE_PERCENT = parseFloat(dp) / 100;
-    if (wf) FEE_FIXED = parseFloat(wf);
-    if (minW) MIN_WITHDRAWAL = parseFloat(minW);
-    if (minD) MIN_DEPOSIT = parseFloat(minD);
-    if (maxD) MAX_DAILY = parseFloat(maxD);
+    if (dp) {
+      const val = parseFloat(dp);
+      if (!isNaN(val)) FEE_PERCENT = val / 100;
+    }
+    if (wf) {
+      const val = parseFloat(wf);
+      if (!isNaN(val)) FEE_FIXED = val;
+    }
+    if (minW) {
+      const val = parseFloat(minW);
+      if (!isNaN(val)) MIN_WITHDRAWAL = val;
+    }
+    if (minD) {
+      const val = parseFloat(minD);
+      if (!isNaN(val)) MIN_DEPOSIT = val;
+    }
+    if (maxD) {
+      const val = parseFloat(maxD);
+      if (!isNaN(val)) MAX_DAILY = val;
+    }
   } catch (e) {
     console.warn("[Settings] Could not load fee settings:", e);
   }

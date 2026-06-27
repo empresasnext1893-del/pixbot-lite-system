@@ -29,7 +29,7 @@ export default function WithdrawModal({ isOpen, onClose, telegramId, balance, on
     pixKeyType: string;
   } | null>(null);
 
-  const FEE_FIXED = (account as any)?.customWithdrawalFeeFixed ?? 3.00;
+  const FEE_FIXED = parseFloat(String((account as any)?.customWithdrawalFeeFixed ?? 3.00)) || 0;
 
   const grossAmount = parseFloat(amount.replace(/\./g, "").replace(",", ".")) || 0;
   const fee = FEE_FIXED;
@@ -121,7 +121,7 @@ export default function WithdrawModal({ isOpen, onClose, telegramId, balance, on
                 </div>
                 <div>
                   <h2 className="font-semibold text-foreground">Saque via PIX</h2>
-                  <p className="text-xs text-muted-foreground">Saldo: R$ {balance.toFixed(2).replace(".", ",")}</p>
+                  <p className="text-xs text-muted-foreground">Saldo: R$ {Number(balance).toFixed(2).replace(".", ",")}</p>
                 </div>
               </div>
               <Button variant="ghost" size="icon" onClick={handleClose} className="w-8 h-8 rounded-lg">

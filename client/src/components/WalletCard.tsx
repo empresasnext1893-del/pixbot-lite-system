@@ -101,7 +101,7 @@ export default function WalletCard({ wallet, onDeposit, onWithdraw, onRefresh, i
             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Saldo Disponível</p>
             <div className="flex items-baseline gap-2">
               <span className="text-4xl font-bold text-foreground tracking-tight">
-                R$ {balance.toFixed(2).replace(".", ",")}
+                R$ {Number(balance).toFixed(2).replace(".", ",")}
               </span>
             </div>
             <div
@@ -128,7 +128,7 @@ export default function WalletCard({ wallet, onDeposit, onWithdraw, onRefresh, i
                 <TrendingUp className="w-3.5 h-3.5 text-success" />
                 <span className="text-xs text-muted-foreground">Recebido</span>
               </div>
-              <p className="text-sm font-semibold text-success">R$ {deposited.toFixed(2).replace(".", ",")}</p>
+              <p className="text-sm font-semibold text-success">R$ {Number(deposited).toFixed(2).replace(".", ",")}</p>
             </div>
             <div
               className="rounded-xl p-3"
@@ -138,7 +138,7 @@ export default function WalletCard({ wallet, onDeposit, onWithdraw, onRefresh, i
                 <TrendingDown className="w-3.5 h-3.5 text-destructive" />
                 <span className="text-xs text-muted-foreground">Sacado</span>
               </div>
-              <p className="text-sm font-semibold text-destructive">R$ {withdrawn.toFixed(2).replace(".", ",")}</p>
+              <p className="text-sm font-semibold text-destructive">R$ {Number(withdrawn).toFixed(2).replace(".", ",")}</p>
             </div>
           </div>
 

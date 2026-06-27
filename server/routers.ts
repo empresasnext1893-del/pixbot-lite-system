@@ -303,6 +303,16 @@ function calcDepositFee(amount: number, clientAccount?: typeof clientAccounts.$i
           maxAge: 30 * 24 * 60 * 60 * 1000,
         });
         const client = await getClientById(clientId);
+
+        // Audit Log
+        await createAuditLog({
+          adminId: 0, // 0 = System/Client
+          action: "client_register",
+          targetType: "client",
+          targetId: clientId,
+          details: `Novo cliente registrado: ${input.name} (${input.email})`
+        });
+
         return { success: true, account: client };
       }),
 
@@ -326,6 +336,16 @@ function calcDepositFee(amount: number, clientAccount?: typeof clientAccounts.$i
           throw new TRPCError({ code: "FORBIDDEN", message: "Conta desativada." });
         }
         await updateClientLastLogin(client.id);
+
+        // Audit Log
+        await createAuditLog({
+          adminId: 0,
+          action: "client_login",
+          targetType: "client",
+          targetId: client.id,
+          details: `Cliente realizou login: ${client.email}`
+        });
+
         const token = await signClientJwt(client.id);
         ctx.res.cookie(CLIENT_COOKIE, token, {
           httpOnly: true,
@@ -483,6 +503,15 @@ function calcDepositFee(amount: number, clientAccount?: typeof clientAccounts.$i
           expiresAt,
         });
 
+        // Audit Log
+        await createAuditLog({
+          adminId: 0,
+          action: "initiate_deposit",
+          targetType: "transaction",
+          targetId: txId2,
+          details: `Cliente solicitou depósito de R$ ${input.amount.toFixed(2)}. Valor líquido: R$ ${netAmount.toFixed(2)}`
+        });
+
         return {
           transactionId: txId2,
           qrCode,
@@ -546,6 +575,15 @@ function calcDepositFee(amount: number, clientAccount?: typeof clientAccounts.$i
           netAmount,
           pixKey: input.pixKey,
           pixKeyType,
+        });
+
+        // Audit Log
+        await createAuditLog({
+          adminId: 0,
+          action: "initiate_withdrawal",
+          targetType: "transaction",
+          targetId: txId,
+          details: `Cliente solicitou saque de R$ ${input.amount.toFixed(2)}. Chave PIX: ${input.pixKey}. Valor líquido: R$ ${netAmount.toFixed(2)}`
         });
 
         // Deduct from balance immediately (pending approval)
@@ -831,6 +869,15 @@ function calcDepositFee(amount: number, clientAccount?: typeof clientAccounts.$i
           await updateSetting("max_daily", String(input.maxDaily));
           MAX_DAILY = input.maxDaily;
         }
+
+        // Audit Log
+        await createAuditLog({
+          adminId: 1,
+          action: "update_settings",
+          targetType: "system",
+          details: `Configurações globais atualizadas: ${JSON.stringify(input)}`
+        });
+
         return { success: true };
       }),
 
@@ -846,6 +893,16 @@ function calcDepositFee(amount: number, clientAccount?: typeof clientAccounts.$i
       .input(z.object({ clientId: z.number(), isActive: z.boolean() }))
       .mutation(async ({ input }) => {
         await updateClientStatus(input.clientId, input.isActive);
+
+        // Audit Log
+        await createAuditLog({
+          adminId: 1,
+          action: "toggle_client_status",
+          targetType: "client",
+          targetId: input.clientId,
+          details: `Status do cliente alterado para: ${input.isActive ? "Ativo" : "Inativo"}`
+        });
+
         return { success: true };
       }),
 
@@ -854,6 +911,16 @@ function calcDepositFee(amount: number, clientAccount?: typeof clientAccounts.$i
       .input(z.object({ clientId: z.number() }))
       .mutation(async ({ input }) => {
         await deleteClientAccount(input.clientId);
+
+        // Audit Log
+        await createAuditLog({
+          adminId: 1,
+          action: "delete_client",
+          targetType: "client",
+          targetId: input.clientId,
+          details: `Cliente #${input.clientId} excluído permanentemente do sistema.`
+        });
+
         return { success: true };
       }),
 

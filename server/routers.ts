@@ -92,7 +92,7 @@ async function signAdminJwt(): Promise<string> {
     .sign(secret);
 }
 
-async function verifyAdminJwt(token: string): Promise<boolean> {
+export async function verifyAdminJwt(token: string): Promise<boolean> {
   try {
     const secret = new TextEncoder().encode(ENV.cookieSecret);
     const { payload } = await jwtVerify(token, secret);

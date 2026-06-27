@@ -825,6 +825,18 @@ export default function AdminNew() {
                             >
                               <Eye className="w-3.5 h-3.5" />
                             </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`ATENÇÃO: Deseja EXCLUIR PERMANENTEMENTE o cliente ${client.email}? Todos os dados, carteira e histórico serão apagados.`)) {
+                                  deleteClientMutation.mutate({ clientId: client.id });
+                                }
+                              }}
+                              className="p-1 rounded-lg transition-colors hover:bg-white/10"
+                              style={{ color: "oklch(0.65 0.18 25)" }}
+                              title="Excluir cliente"
+                            >
+                              <XCircle className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </motion.div>
                       );

@@ -209,6 +209,7 @@ export default function WalletPage() {
             onClose={() => setShowDeposit(false)}
             telegramId={account?.id?.toString() ?? "web_user"}
             telegramName={account?.name ?? "Usuário Web"}
+            account={account}
             onSuccess={refreshWallet}
           />
           <WithdrawModal
@@ -216,6 +217,7 @@ export default function WalletPage() {
             onClose={() => setShowWithdraw(false)}
             telegramId={account?.id?.toString() ?? "web_user"}
             balance={parseFloat(wallet.balance)}
+            account={account}
             onSuccess={refreshWallet}
           />
         </>

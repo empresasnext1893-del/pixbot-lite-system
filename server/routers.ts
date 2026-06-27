@@ -162,14 +162,16 @@ async function loadFeeSettings() {
 }
 loadFeeSettings();
 
-function calcWithdrawalFee(amount: number) {
-  const fee = FEE_FIXED;
+function calcWithdrawalFee(amount: number, clientAccount?: typeof clientAccounts.$inferSelect) {
+  const fee = clientAccount?.customWithdrawalFeeFixed ? parseFloat(clientAccount.customWithdrawalFeeFixed) : FEE_FIXED;
+
   const netAmount = Math.round((amount - fee) * 100) / 100;
   return { fee, netAmount };
 }
 
-function calcDepositFee(amount: number) {
-  const fee = Math.round((amount * FEE_PERCENT) * 100) / 100;
+function calcDepositFee(amount: number, clientAccount?: typeof clientAccounts.$inferSelect) {
+  const feePercent = clientAccount?.customDepositFeePercent ? parseFloat(clientAccount.customDepositFeePercent) / 100 : FEE_PERCENT;
+  const fee = Math.round((amount * feePercent) * 100) / 100;
   const netAmount = Math.round((amount - fee) * 100) / 100;
   return { fee, netAmount };
 }
@@ -380,8 +382,8 @@ function calcDepositFee(amount: number) {
       .input(
         z.object({
           amount: z.number()
-            .min(MIN_DEPOSIT, `Valor mínimo é R$ ${MIN_DEPOSIT.toFixed(2)}`)
-            .max(MAX_AMOUNT, `Valor máximo é R$ ${MAX_AMOUNT.toLocaleString("pt-BR")}`),
+            .min(ctx.clientAccount.customMinDeposit ? parseFloat(ctx.clientAccount.customMinDeposit) : MIN_DEPOSIT, `Valor mínimo é R$ ${(ctx.clientAccount.customMinDeposit ? parseFloat(ctx.clientAccount.customMinDeposit) : MIN_DEPOSIT).toFixed(2)}`)
+            .max(ctx.clientAccount.customMaxDaily ? parseFloat(ctx.clientAccount.customMaxDaily) : MAX_AMOUNT, `Valor máximo é R$ ${(ctx.clientAccount.customMaxDaily ? parseFloat(ctx.clientAccount.customMaxDaily) : MAX_AMOUNT).toLocaleString("pt-BR")}`),
         })
       )
       .mutation(async ({ input, ctx }) => {
@@ -423,7 +425,7 @@ function calcDepositFee(amount: number) {
         // URL da imagem QR Code usando API pública do Google Charts
         const qrCode = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(copyPaste)}`;
 
-        const { fee, netAmount } = calcDepositFee(input.amount);
+        const { fee, netAmount } = calcDepositFee(input.amount, ctx.clientAccount);
         const txId2 = await createTransaction({
           walletId: wallet.id,
           clientId: ctx.clientAccount.id,
@@ -443,7 +445,7 @@ function calcDepositFee(amount: number) {
           amount: input.amount,
           fee,
           netAmount,
-          feePercent: Math.round(FEE_PERCENT * 100),
+          feePercent: Math.round((ctx.clientAccount.customDepositFeePercent ? parseFloat(ctx.clientAccount.customDepositFeePercent) : FEE_PERCENT * 100)),
           expiresAt,
         };
       }),
@@ -462,8 +464,8 @@ function calcDepositFee(amount: number) {
       .input(
         z.object({
           amount: z.number()
-            .min(MIN_WITHDRAWAL, `Valor mínimo para saque é R$ ${MIN_WITHDRAWAL.toFixed(2)}`)
-            .max(MAX_AMOUNT, `Valor máximo é R$ ${MAX_AMOUNT.toLocaleString("pt-BR")}`),
+            .min(ctx.clientAccount.customMinWithdrawal ? parseFloat(ctx.clientAccount.customMinWithdrawal) : MIN_WITHDRAWAL, `Valor mínimo para saque é R$ ${(ctx.clientAccount.customMinWithdrawal ? parseFloat(ctx.clientAccount.customMinWithdrawal) : MIN_WITHDRAWAL).toFixed(2)}`)
+            .max(ctx.clientAccount.customMaxDaily ? parseFloat(ctx.clientAccount.customMaxDaily) : MAX_AMOUNT, `Valor máximo é R$ ${(ctx.clientAccount.customMaxDaily ? parseFloat(ctx.clientAccount.customMaxDaily) : MAX_AMOUNT).toLocaleString("pt-BR")}`),
           pixKey: z.string().min(1, "Chave PIX é obrigatória"),
         })
       )
@@ -476,7 +478,7 @@ function calcDepositFee(amount: number) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Saldo insuficiente." });
         }
 
-        const { fee, netAmount } = calcWithdrawalFee(input.amount);
+        const { fee, netAmount } = calcWithdrawalFee(input.amount, ctx.clientAccount);
         if (netAmount <= 0) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Valor muito baixo após a taxa." });
         }
@@ -821,6 +823,34 @@ function calcDepositFee(amount: number) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Saldo administrativo insuficiente." });
         }
         await updateAdminWallet(-input.amount, 0);
+        return { success: true };
+      }),
+
+    updateClientFees: adminProcedure
+      .input(z.object({
+        clientId: z.number(),
+        customDepositFeePercent: z.number().optional(),
+        customWithdrawalFeeFixed: z.number().optional(),
+        customMinDeposit: z.number().optional(),
+        customMinWithdrawal: z.number().optional(),
+        customMaxDaily: z.number().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
+        
+        const updateData: Record<string, any> = {};
+        if (input.customDepositFeePercent !== undefined) updateData.customDepositFeePercent = input.customDepositFeePercent;
+        if (input.customWithdrawalFeeFixed !== undefined) updateData.customWithdrawalFeeFixed = input.customWithdrawalFeeFixed;
+        if (input.customMinDeposit !== undefined) updateData.customMinDeposit = input.customMinDeposit;
+        if (input.customMinWithdrawal !== undefined) updateData.customMinWithdrawal = input.customMinWithdrawal;
+        if (input.customMaxDaily !== undefined) updateData.customMaxDaily = input.customMaxDaily;
+
+        await db
+          .update(clientAccounts)
+          .set(updateData)
+          .where(eq(clientAccounts.id, input.clientId));
+        
         return { success: true };
       }),
   }),

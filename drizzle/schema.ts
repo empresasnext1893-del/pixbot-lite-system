@@ -36,9 +36,12 @@ export const clientAccounts = mysqlTable("clientAccounts", {
   lastLoginAt: timestamp("lastLoginAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  customDepositFeePercent: decimal("customDepositFeePercent", { precision: 5, scale: 2 }),
+  customWithdrawalFeeFixed: decimal("customWithdrawalFeeFixed", { precision: 15, scale: 2 }),
+  customMinDeposit: decimal("customMinDeposit", { precision: 15, scale: 2 }),
+  customMinWithdrawal: decimal("customMinWithdrawal", { precision: 15, scale: 2 }),
+  customMaxDaily: decimal("customMaxDaily", { precision: 15, scale: 2 }),
 });
-
-export type ClientAccount = typeof clientAccounts.$inferSelect;
 export type InsertClientAccount = typeof clientAccounts.$inferInsert;
 
 // Wallets (one per client)

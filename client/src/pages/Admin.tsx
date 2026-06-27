@@ -26,7 +26,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string }>
 };
 
 function fmt(val: string | number) {
-  return `R$ ${parseFloat(String(val)).toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+  return `R$ ${Number(parseFloat(String(val)) || 0).toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
 }
 
 function CopyBtn({ text }: { text: string }) {

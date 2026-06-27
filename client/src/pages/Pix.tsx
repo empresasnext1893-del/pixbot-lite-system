@@ -138,8 +138,8 @@ export default function Pix() {
   const depositFee = 20;
   const withdrawalFee = 3;
   const depositAmountNum = parseFloat(depositAmount.replace(",", ".")) || 0;
-  const depositFeeValue = parseFloat((depositAmountNum * (depositFee / 100)).toFixed(2));
-  const depositNet = parseFloat((depositAmountNum - depositFeeValue).toFixed(2));
+  const depositFeeValue = parseFloat(Number(depositAmountNum * (depositFee / 100)).toFixed(2));
+  const depositNet = parseFloat(Number(depositAmountNum - depositFeeValue).toFixed(2));
 
   const withdrawAmountNum = parseFloat(withdrawAmount.replace(",", ".")) || 0;
   // O valor total debitado é o próprio valor bruto inserido, a taxa é subtraída dele

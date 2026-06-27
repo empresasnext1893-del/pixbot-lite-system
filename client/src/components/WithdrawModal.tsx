@@ -29,7 +29,7 @@ export default function WithdrawModal({ isOpen, onClose, telegramId, balance, on
     pixKeyType: string;
   } | null>(null);
 
-  const FEE_FIXED = parseFloat(String((account as any)?.customWithdrawalFeeFixed ?? 3.00)) || 0;
+  const FEE_FIXED = parseFloat(String((account as any)?.customWithdrawalFeeFixed ?? (account as any)?.globalSettings?.withdrawalFeeFixed ?? 3.00)) || 0;
 
   const grossAmount = parseFloat(amount.replace(/\./g, "").replace(",", ".")) || 0;
   const fee = FEE_FIXED;
@@ -65,7 +65,7 @@ export default function WithdrawModal({ isOpen, onClose, telegramId, balance, on
   };
 
   const handleAmountNext = () => {
-    const minWithdrawal = (account as any)?.customMinWithdrawal ?? 10;
+    const minWithdrawal = (account as any)?.customMinWithdrawal ?? (account as any)?.globalSettings?.minWithdrawal ?? 10;
     if (grossAmount < minWithdrawal) { toast.error(`Valor mínimo para saque é R$ ${Number(minWithdrawal).toFixed(2).replace(".", ",")}`); return; }
     if (grossAmount > 1000000) { toast.error("Valor máximo por operação é R$ 1.000.000,00"); return; }
     if (grossAmount > balance) { toast.error(`Saldo insuficiente. Disponível: R$ ${Number(balance).toFixed(2).replace(".", ",")}`); return; }

@@ -167,8 +167,8 @@ export default function DepositModal({ isOpen, onClose, telegramId, telegramName
                         />
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">
-                        Mínimo: R$ {(account as any)?.customMinDeposit || "10,00"} • 
-                        Taxa de processamento: {(account as any)?.customDepositFeePercent || "20"}%
+                        Mínimo: R$ {Number((account as any)?.customMinDeposit ?? (account as any)?.globalSettings?.minDeposit ?? 10).toFixed(2).replace(".", ",")} • 
+                        Taxa de processamento: {(account as any)?.customDepositFeePercent ?? (account as any)?.globalSettings?.depositFeePercent ?? "20"}%
                       </p>
                     </div>
 

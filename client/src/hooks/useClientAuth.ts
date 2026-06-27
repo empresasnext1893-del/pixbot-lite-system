@@ -4,7 +4,8 @@ import { useCallback } from "react";
 export function useClientAuth() {
   const { data: session, isLoading, refetch } = trpc.clientAuth.me.useQuery(undefined, {
     retry: false,
-    staleTime: 30_000,
+    staleTime: 5_000, // Reduzido para 5s para refletir mudanças do admin mais rápido
+    refetchOnWindowFocus: true,
   });
 
   const loginMutation = trpc.clientAuth.login.useMutation();

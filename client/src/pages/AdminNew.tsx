@@ -44,39 +44,61 @@ function CopyBtn({ text }: { text: string }) {
 
 function MoneyBackground() {
   return (
-    <>
-      {/* Imagem de fundo estática */}
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      {/* Camada Base Estática */}
       <div
-        className="fixed inset-0 pointer-events-none z-0"
+        className="absolute inset-0"
         style={{
           backgroundImage: "url('/assets/money_bg.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "brightness(0.3) saturate(1.2) contrast(1.1)",
+          filter: "brightness(0.25) saturate(1.1) contrast(1.1)",
         }}
       />
 
-      {/* Fundo 3D animado com efeito de movimento */}
+      {/* Camada de Movimento 3D / Parallax Animado */}
       <motion.div
-        className="fixed inset-0 pointer-events-none z-0"
+        className="absolute inset-[-10%]"
         animate={{
-          y: [0, -30, 0],
-          scale: [1, 1.1, 1],
-          opacity: [0.2, 0.4, 0.2],
+          x: [-20, 20, -20],
+          y: [-20, 10, -20],
+          rotate: [0, 1, -1, 0],
+          scale: [1.1, 1.15, 1.1],
         }}
         transition={{
-          duration: 10,
+          duration: 20,
+          repeat: Infinity,
+          ease: "linear",
+        }}
+        style={{
+          backgroundImage: "url('/assets/money_bg.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          filter: "brightness(0.35) saturate(1.2) blur(2px)",
+          opacity: 0.6,
+        }}
+      />
+
+      {/* Camada de Partículas/Brilho Flutuante (Efeito de Desfalque) */}
+      <motion.div
+        className="absolute inset-0"
+        animate={{
+          opacity: [0.3, 0.5, 0.3],
+          scale: [1, 1.05, 1],
+        }}
+        transition={{
+          duration: 8,
           repeat: Infinity,
           ease: "easeInOut",
         }}
         style={{
-          backgroundImage: "url('/assets/money_bg.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          filter: "brightness(0.4) saturate(1.1) blur(1px)",
+          background: "radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%)",
         }}
       />
-    </>
+      
+      {/* Overlay de Vinheta para Profundidade */}
+      <div className="absolute inset-0 shadow-[inset_0_0_150px_rgba(0,0,0,0.8)]" />
+    </div>
   );
 }
 

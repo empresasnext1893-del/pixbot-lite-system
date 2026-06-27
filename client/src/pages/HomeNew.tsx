@@ -310,98 +310,123 @@ export default function HomeNew() {
 
 
           {tab === "support" && (
-            <motion.div key="about" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="container max-w-md mx-auto py-6 px-4 pb-24 space-y-5">
-              <div className="text-center space-y-1">
-                <h2 className="text-xl font-bold text-foreground">Sobre a Plataforma</h2>
-                <p className="text-[10px] text-muted-foreground">Conheça nossos diferenciais e regras</p>
+            <motion.div key="about" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="container max-w-md mx-auto py-6 px-4 pb-24 space-y-6">
+              <div className="text-center space-y-2">
+                <div className="w-16 h-16 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-2 border border-primary/20 shadow-lg shadow-primary/5">
+                  <Info className="w-8 h-8 text-primary" />
+                </div>
+                <h2 className="text-2xl font-black text-foreground tracking-tight">Sobre a Plataforma</h2>
+                <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-widest">Transparência e Segurança Total</p>
               </div>
               
-              <div className="space-y-4">
-                {/* Card: Segurança Total */}
-                <div className="glass p-5 rounded-2xl border-white/10 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Shield className="w-4 h-4 text-primary" />
-                    </div>
-                    <h4 className="font-bold text-sm">Segurança Total</h4>
+              <div className="space-y-5">
+                {/* Card: Blindagem Transacional */}
+                <div className="glass p-6 rounded-[2rem] border-white/10 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
+                    <Shield className="w-24 h-24 text-primary" />
                   </div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Nossa plataforma foi desenvolvida com foco em **blindagem transacional**. Garantimos que todas as operações sejam definitivas.
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/30">
+                      <Shield className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-sm uppercase tracking-tighter">Blindagem Transacional</h4>
+                      <p className="text-[9px] text-primary font-bold">Proteção Avançada</p>
+                    </div>
+                  </div>
+                  <p className="text-[12px] text-muted-foreground leading-relaxed mb-5">
+                    Nossa infraestrutura foi projetada para garantir que cada centavo movimentado esteja protegido por camadas de segurança bancária.
                   </p>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2 text-[10px]">
-                      <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 shrink-0" />
-                      <span>**Zero Contestação:** Sistema imune a estornos indevidos.</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-[10px]">
-                      <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 shrink-0" />
-                      <span>**Zero MED:** Proteção contra bloqueios e devoluções automáticas.</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-[10px]">
-                      <CheckCircle className="w-3 h-3 text-green-500 mt-0.5 shrink-0" />
-                      <span>**Liquidez Imediata:** Valores disponíveis assim que confirmados.</span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Card: Taxas */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="glass p-4 rounded-2xl border-white/10">
-                    <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="w-3 h-3 text-yellow-500" />
-                      <p className="text-[9px] text-muted-foreground uppercase font-bold">Depósito</p>
-                    </div>
-                    <p className="text-xl font-black text-primary">{(account as any)?.customDepositFeePercent ?? (account as any)?.globalSettings?.depositFeePercent ?? "20"}%</p>
-                    <p className="text-[8px] text-muted-foreground mt-1">Taxa automática</p>
-                  </div>
-                  <div className="glass p-4 rounded-2xl border-white/10">
-                    <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="w-3 h-3 text-white" />
-                      <p className="text-[9px] text-muted-foreground uppercase font-bold">Saque</p>
-                    </div>
-                    <p className="text-xl font-black text-white">R$ {Number((account as any)?.customWithdrawalFeeFixed ?? (account as any)?.globalSettings?.withdrawalFeeFixed ?? 3.00).toFixed(2).replace(".", ",")}</p>
-                    <p className="text-[8px] text-muted-foreground mt-1">Valor fixo</p>
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {[
+                      { title: "Zero Contestação", desc: "Sistema imune a estornos indevidos" },
+                      { title: "Proteção Anti-MED", desc: "Blindagem contra bloqueios automáticos" },
+                      { title: "Liquidez Instantânea", desc: "Valores disponíveis em segundos" }
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                        <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                        <div>
+                          <p className="text-[11px] font-bold text-foreground leading-none mb-1">{item.title}</p>
+                          <p className="text-[9px] text-muted-foreground leading-none">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                {/* Card: Limites */}
-                <div className="glass p-5 rounded-2xl border-white/10 space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                      <Calendar className="w-4 h-4 text-blue-400" />
+                {/* Card: Estrutura de Taxas */}
+                <div className="space-y-3">
+                  <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-2">Taxas Operacionais</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="glass p-5 rounded-[1.8rem] border-white/10 relative overflow-hidden">
+                      <div className="absolute -bottom-2 -right-2 opacity-5"><TrendingUp className="w-12 h-12 text-primary" /></div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center"><TrendingUp className="w-3.5 h-3.5 text-primary" /></div>
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase">Depósito</span>
+                      </div>
+                      <p className="text-2xl font-black text-foreground">{(account as any)?.customDepositFeePercent ?? (account as any)?.globalSettings?.depositFeePercent ?? "20"}<span className="text-primary text-sm ml-0.5">%</span></p>
+                      <p className="text-[8px] text-muted-foreground mt-1 font-medium">Processamento automático</p>
                     </div>
-                    <h4 className="font-bold text-sm">Limites Operacionais</h4>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center text-[10px] p-2 rounded-lg bg-white/5">
-                      <span className="text-muted-foreground">Depósito Mínimo</span>
-                      <span className="font-bold text-foreground">R$ {Number((account as any)?.customMinDeposit ?? (account as any)?.globalSettings?.minDeposit ?? 10).toFixed(2).replace(".", ",")}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-[10px] p-2 rounded-lg bg-white/5">
-                      <span className="text-muted-foreground">Saque Mínimo</span>
-                      <span className="font-bold text-foreground">R$ {Number((account as any)?.customMinWithdrawal ?? (account as any)?.globalSettings?.minWithdrawal ?? 10).toFixed(2).replace(".", ",")}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-[10px] p-2 rounded-lg bg-white/5">
-                      <span className="text-muted-foreground">Limite por Operação</span>
-                      <span className="font-bold text-foreground">R$ 1.000.000,00</span>
+                    <div className="glass p-5 rounded-[1.8rem] border-white/10 relative overflow-hidden">
+                      <div className="absolute -bottom-2 -right-2 opacity-5"><DollarSign className="w-12 h-12 text-white" /></div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center"><DollarSign className="w-3.5 h-3.5 text-white" /></div>
+                        <span className="text-[9px] font-bold text-muted-foreground uppercase">Saque</span>
+                      </div>
+                      <p className="text-2xl font-black text-foreground"><span className="text-xs mr-0.5">R$</span>{Number((account as any)?.customWithdrawalFeeFixed ?? (account as any)?.globalSettings?.withdrawalFeeFixed ?? 3.00).toFixed(2).replace(".", ",")}</p>
+                      <p className="text-[8px] text-muted-foreground mt-1 font-medium">Valor fixo por operação</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Card: Suporte Integrado */}
-                <div className="glass p-5 rounded-2xl border-primary/20 bg-primary/5 space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <MessageCircle className="w-4 h-4 text-primary" />
+                {/* Card: Limites do Sistema */}
+                <div className="glass p-6 rounded-[2rem] border-white/10">
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className="w-10 h-10 rounded-2xl bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
+                      <Calendar className="w-5 h-5 text-blue-400" />
                     </div>
-                    <h4 className="font-bold text-sm">Suporte 24h</h4>
+                    <div>
+                      <h4 className="font-black text-sm uppercase tracking-tighter">Limites de Conta</h4>
+                      <p className="text-[9px] text-blue-400 font-bold">Operações Diárias</p>
+                    </div>
                   </div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Precisa de ajuda ou quer aumentar seus limites? Nosso time está disponível no Telegram para te atender.
-                  </p>
-                  <Button className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs shadow-lg shadow-primary/20 flex items-center justify-center gap-2" onClick={() => window.open("https://t.me/pixbot_suporte_oficial", "_blank")}>
-                    <Send className="w-4 h-4" /> Falar com Suporte
-                  </Button>
+                  <div className="space-y-3">
+                    {[
+                      { label: "Depósito Mínimo", value: `R$ ${Number((account as any)?.customMinDeposit ?? (account as any)?.globalSettings?.minDeposit ?? 10).toFixed(2).replace(".", ",")}` },
+                      { label: "Saque Mínimo", value: `R$ ${Number((account as any)?.customMinWithdrawal ?? (account as any)?.globalSettings?.minWithdrawal ?? 10).toFixed(2).replace(".", ",")}` },
+                      { label: "Limite Operacional", value: "R$ 1.000.000,00" }
+                    ].map((row, i) => (
+                      <div key={i} className="flex justify-between items-center p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.05]">
+                        <span className="text-[11px] font-bold text-muted-foreground">{row.label}</span>
+                        <span className="text-[12px] font-black text-foreground">{row.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-5 p-4 rounded-2xl bg-primary/5 border border-primary/10 flex items-start gap-3">
+                    <AlertCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-muted-foreground leading-relaxed font-medium">
+                      Estes limites são dinâmicos e podem ser ajustados conforme seu histórico. Para upgrades imediatos, contate o suporte.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Card: Suporte Exclusivo */}
+                <div className="glass p-6 rounded-[2rem] border-primary/30 bg-primary/10 shadow-xl shadow-primary/5 relative overflow-hidden">
+                  <div className="absolute -top-6 -right-6 opacity-10 rotate-12">
+                    <MessageCircle className="w-24 h-24 text-primary" />
+                  </div>
+                  <div className="relative z-10">
+                    <h4 className="text-base font-black text-foreground mb-2">Suporte Exclusivo 24h</h4>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed mb-6">
+                      Nossa equipe de especialistas está pronta para te atender via Telegram. Clique abaixo para iniciar o chat.
+                    </p>
+                    <Button 
+                      className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-sm shadow-xl shadow-primary/20 flex items-center justify-center gap-3 transition-transform active:scale-[0.98]" 
+                      onClick={() => window.open("https://t.me/pixbot_suporte_oficial", "_blank")}
+                    >
+                      <Send className="w-5 h-5" /> FALAR COM SUPORTE AGORA
+                    </Button>
+                  </div>
                 </div>
               </div>
             </motion.div>

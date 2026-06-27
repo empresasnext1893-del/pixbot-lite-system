@@ -74,7 +74,7 @@ function MoneyBackground() {
           backgroundImage: "url('/assets/money_bg.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "brightness(0.8) saturate(1.6) blur(1px)",
+          filter: "brightness(0.8) saturate(1.6)",
           opacity: 0.5,
         }}
       />

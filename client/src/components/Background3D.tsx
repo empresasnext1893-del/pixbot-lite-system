@@ -40,15 +40,14 @@ export default function Background3D() {
         const autoMoveY = Math.cos(s.time * 0.2) * 10;
         const autoRotate = Math.sin(s.time * 0.15) * 1.5;
         
-        // Efeito de desfoque pulsante (Realce) - vai de 0px (nítido) até 3px (desfocado)
-        const blurAmount = (Math.sin(s.time * 0.5) + 1) * 1.0; // oscila entre 0 e 2
-        const brightness = 0.65 + (Math.sin(s.time * 0.5) + 1) * 0.1; // oscila entre 0.65 e 0.85 (MUITO mais brilho)
+        // Apenas brilho pulsante, sem desfoque (Blur removido)
+        const brightness = 0.65 + (Math.sin(s.time * 0.5) + 1) * 0.1; // oscila entre 0.65 e 0.85
         
         const px = s.mouseX * 25 + autoMoveX;
         const py = s.mouseY * 18 + autoMoveY;
         
         bgEl.style.transform = `scale(1.2) translate(${px}px, ${py}px) rotate(${autoRotate}deg)`;
-        bgEl.style.filter = `brightness(${brightness}) saturate(1.6) contrast(1.1) blur(${blurAmount}px)`;
+        bgEl.style.filter = `brightness(${brightness}) saturate(1.6) contrast(1.1)`;
       }
 
       // Notas de dinheiro flutuantes (efeito desfalque/queda suave)

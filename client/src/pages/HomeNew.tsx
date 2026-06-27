@@ -403,21 +403,23 @@ export default function HomeNew() {
           )}
         </AnimatePresence>
 
-        {/* Bottom Nav */}
-        <nav className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 w-full max-w-sm">
-          <div className="glass rounded-[1.5rem] p-1.5 flex items-center shadow-2xl border border-white/10 bg-black/40 backdrop-blur-xl">
-            {[
-              { id: "home", icon: HomeIcon, label: "Início" }, 
-              { id: "history", icon: History, label: "Extrato" },
-              { id: "referral", icon: Gift, label: "Convite" }, 
-              { id: "support", icon: MessageCircle, label: "Suporte" } 
-            ].map((item) => (
-              <button key={item.id} onClick={() => setTab(item.id as Tab)} className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 rounded-xl transition-all duration-300 ${tab === item.id ? "bg-primary text-white shadow-md shadow-primary/20" : "text-muted-foreground hover:text-foreground"}`}>
-                <item.icon className="w-4 h-4" /> <span className="text-[8px] font-bold uppercase tracking-tighter">{item.label}</span>
-              </button>
-            ))}
-          </div>
-        </nav>
+        {/* Bottom Nav - Só aparece se estiver autenticado */}
+        {isAuthenticated && (
+          <nav className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 w-full max-w-sm">
+            <div className="glass rounded-[1.5rem] p-1.5 flex items-center shadow-2xl border border-white/10 bg-black/40 backdrop-blur-xl">
+              {[
+                { id: "home", icon: HomeIcon, label: "Início" }, 
+                { id: "history", icon: History, label: "Extrato" },
+                { id: "referral", icon: Gift, label: "Convite" }, 
+                { id: "support", icon: MessageCircle, label: "Suporte" } 
+              ].map((item) => (
+                <button key={item.id} onClick={() => setTab(item.id as Tab)} className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 rounded-xl transition-all duration-300 ${tab === item.id ? "bg-primary text-white shadow-md shadow-primary/20" : "text-muted-foreground hover:text-foreground"}`}>
+                  <item.icon className="w-4 h-4" /> <span className="text-[8px] font-bold uppercase tracking-tighter">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </nav>
+        )}
 
         {/* Modais */}
         <DepositModal 

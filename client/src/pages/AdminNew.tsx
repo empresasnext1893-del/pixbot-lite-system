@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Users, ArrowDownLeft, ArrowUpRight, Clock,
@@ -81,6 +82,7 @@ function MoneyBackground() {
 
 export default function AdminNew() {
   const { user, loading, isAuthenticated } = useAuth();
+  const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
   const [expandedTx, setExpandedTx] = useState<number | null>(null);
   const [selectedClient, setSelectedClient] = useState<number | null>(null);

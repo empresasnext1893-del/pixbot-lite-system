@@ -447,11 +447,11 @@ export default function AdminNew() {
                               <p className="text-xs text-muted-foreground">{fmt(tx.amount)}{tx.pixKey ? ` • ${tx.pixKey}` : ""}</p>
                             </div>
                             <div className="flex gap-2">
-                              <button onClick={() => tx.type === "deposit" ? approveDepositMutation.mutate({ transactionId: tx.id }) : approveWithdrawMutation.mutate({ transactionId: tx.id })} className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all" style={{ background: "oklch(0.25 0.10 145 / 0.5)", color: "oklch(0.75 0.18 145)", border: "1px solid oklch(0.40 0.15 145 / 0.4)" }}>
-                                ✓ {tx.type === "deposit" ? "Confirmar" : "Aprovar"}
+                              <button disabled={approveDepositMutation.isPending || approveWithdrawMutation.isPending} onClick={() => tx.type === "deposit" ? approveDepositMutation.mutate({ transactionId: tx.id }) : approveWithdrawMutation.mutate({ transactionId: tx.id })} className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: "oklch(0.25 0.10 145 / 0.5)", color: "oklch(0.75 0.18 145)", border: "1px solid oklch(0.40 0.15 145 / 0.4)" }}>
+                                {approveDepositMutation.isPending || approveWithdrawMutation.isPending ? <Loader2 className="w-3 h-3 inline animate-spin mr-1" /> : "✓"} {tx.type === "deposit" ? "Confirmar" : "Aprovar"}
                               </button>
-                              <button onClick={() => rejectMutation.mutate({ transactionId: tx.id })} className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all" style={{ background: "oklch(0.20 0.08 25 / 0.5)", color: "oklch(0.70 0.18 25)", border: "1px solid oklch(0.40 0.15 25 / 0.4)" }}>
-                                ✗ Rejeitar
+                              <button disabled={rejectMutation.isPending} onClick={() => rejectMutation.mutate({ transactionId: tx.id })} className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: "oklch(0.20 0.08 25 / 0.5)", color: "oklch(0.70 0.18 25)", border: "1px solid oklch(0.40 0.15 25 / 0.4)" }}>
+                                {rejectMutation.isPending ? <Loader2 className="w-3 h-3 inline animate-spin mr-1" /> : "✗"} Rejeitar
                               </button>
                             </div>
                           </div>

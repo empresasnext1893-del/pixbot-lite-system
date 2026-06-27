@@ -170,10 +170,18 @@ function calcWithdrawalFee(amount: number, clientAccount?: typeof clientAccounts
 }
 
 function calcDepositFee(amount: number, clientAccount?: typeof clientAccounts.$inferSelect) {
-  const feePercent = clientAccount?.customDepositFeePercent ? parseFloat(clientAccount.customDepositFeePercent) / 100 : FEE_PERCENT;
-  const fee = Math.round((amount * feePercent) * 100) / 100;
-  const netAmount = Math.round((amount - fee) * 100) / 100;
-  return { fee, netAmount };
+  const feePercentStr = clientAccount?.customDepositFeePercent ? String(clientAccount.customDepositFeePercent) : String(FEE_PERCENT * 100);
+  const feePercent = parseFloat(feePercentStr) / 100;
+  
+  // Cálculo preciso usando centavos para evitar erros de ponto flutuante
+  const amountCents = Math.round(amount * 100);
+  const feeCents = Math.round(amountCents * feePercent);
+  const netAmountCents = amountCents - feeCents;
+  
+  return { 
+    fee: feeCents / 100, 
+    netAmount: netAmountCents / 100 
+  };
 }
 
   // ── Routers ───────────────────────────────────────────────────────────────────

@@ -40,15 +40,15 @@ export default function Background3D() {
         const autoMoveY = Math.cos(s.time * 0.2) * 10;
         const autoRotate = Math.sin(s.time * 0.15) * 1.5;
         
-        // Efeito de desfoque pulsante (Realce) - vai de 0px (nítido) até 4px (desfocado)
-        const blurAmount = (Math.sin(s.time * 0.5) + 1) * 1.5; // oscila entre 0 e 3 (menos blur para ver melhor)
-        const brightness = 0.45 + (Math.sin(s.time * 0.5) + 1) * 0.08; // oscila entre 0.45 e 0.61 (mais brilho)
+        // Efeito de desfoque pulsante (Realce) - vai de 0px (nítido) até 3px (desfocado)
+        const blurAmount = (Math.sin(s.time * 0.5) + 1) * 1.0; // oscila entre 0 e 2
+        const brightness = 0.65 + (Math.sin(s.time * 0.5) + 1) * 0.1; // oscila entre 0.65 e 0.85 (MUITO mais brilho)
         
         const px = s.mouseX * 25 + autoMoveX;
         const py = s.mouseY * 18 + autoMoveY;
         
         bgEl.style.transform = `scale(1.2) translate(${px}px, ${py}px) rotate(${autoRotate}deg)`;
-        bgEl.style.filter = `brightness(${brightness}) saturate(1.5) contrast(1.1) blur(${blurAmount}px)`;
+        bgEl.style.filter = `brightness(${brightness}) saturate(1.6) contrast(1.1) blur(${blurAmount}px)`;
       }
 
       // Notas de dinheiro flutuantes (efeito desfalque/queda suave)
@@ -127,32 +127,16 @@ export default function Background3D() {
         }}
       />
 
-      {/* Overlay escuro profissional — garante legibilidade do texto */}
+      {/* Overlay escuro MUITO MAIS SUAVE — para destacar o dinheiro */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(180deg, oklch(0.06 0.02 250 / 0.50) 0%, oklch(0.07 0.02 250 / 0.40) 35%, oklch(0.07 0.02 250 / 0.48) 70%, oklch(0.06 0.02 250 / 0.60) 100%)",
+            "linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 35%, rgba(0,0,0,0.15) 70%, rgba(0,0,0,0.4) 100%)",
         }}
       />
 
-      {/* Brilho azul neon no topo (identidade visual) */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 100% 45% at 50% 0%, oklch(0.35 0.16 250 / 0.40) 0%, transparent 65%)",
-        }}
-      />
-
-      {/* Brilho lateral esquerdo */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 40% 60% at 0% 50%, oklch(0.30 0.14 250 / 0.20) 0%, transparent 70%)",
-        }}
-      />
+      {/* Removido brilho azul excessivo para não tampar a imagem */}
 
       {/* Notas de dinheiro flutuantes decorativas */}
       {notePositions.map((pos, i) => (

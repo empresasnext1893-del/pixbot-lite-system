@@ -45,18 +45,18 @@ function CopyBtn({ text }: { text: string }) {
 function MoneyBackground() {
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      {/* Camada Base Estática */}
+      {/* Camada Base Estática - Muito mais clara agora */}
       <div
         className="absolute inset-0"
         style={{
           backgroundImage: "url('/assets/money_bg.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "brightness(0.45) saturate(1.4) contrast(1.2)",
+          filter: "brightness(0.7) saturate(1.5) contrast(1.1)",
         }}
       />
 
-      {/* Camada de Movimento 3D / Parallax Animado */}
+      {/* Camada de Movimento 3D / Parallax Animado - Visível e nítida */}
       <motion.div
         className="absolute inset-[-10%]"
         animate={{
@@ -74,17 +74,16 @@ function MoneyBackground() {
           backgroundImage: "url('/assets/money_bg.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "brightness(0.55) saturate(1.5) blur(2px)",
-          opacity: 0.7,
+          filter: "brightness(0.8) saturate(1.6) blur(1px)",
+          opacity: 0.5,
         }}
       />
 
-      {/* Camada de Partículas/Brilho Flutuante (Efeito de Desfalque) */}
+      {/* Camada de Partículas/Brilho Flutuante - Suave para não escurecer */}
       <motion.div
         className="absolute inset-0"
         animate={{
-          opacity: [0.3, 0.5, 0.3],
-          scale: [1, 1.05, 1],
+          opacity: [0.1, 0.3, 0.1],
         }}
         transition={{
           duration: 8,
@@ -92,12 +91,12 @@ function MoneyBackground() {
           ease: "easeInOut",
         }}
         style={{
-          background: "radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%)",
+          background: "radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.2) 100%)",
         }}
       />
       
-      {/* Overlay de Vinheta para Profundidade */}
-      <div className="absolute inset-0 shadow-[inset_0_0_150px_rgba(0,0,0,0.8)]" />
+      {/* Overlay de Vinheta - Mais suave para não tampar o fundo */}
+      <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]" />
     </div>
   );
 }

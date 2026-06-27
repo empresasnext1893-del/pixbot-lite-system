@@ -35,22 +35,27 @@ export default function Background3D() {
       // Paralaxe + flutuação na imagem de fundo
       const bgEl = mount.querySelector(".bg-image") as HTMLElement | null;
       if (bgEl) {
-        const floatX = Math.sin(s.time * 0.4) * 6;
-        const floatY = Math.cos(s.time * 0.25) * 4;
-        const px = s.mouseX * 20 + floatX;
-        const py = s.mouseY * 14 + floatY;
-        bgEl.style.transform = `scale(1.15) translate(${px}px, ${py}px)`;
+        // No mobile, o mouseX/Y será 0, então a animação de seno/cosseno garante o movimento
+        const autoMoveX = Math.sin(s.time * 0.3) * 15;
+        const autoMoveY = Math.cos(s.time * 0.2) * 10;
+        const autoRotate = Math.sin(s.time * 0.15) * 1.5;
+        
+        const px = s.mouseX * 25 + autoMoveX;
+        const py = s.mouseY * 18 + autoMoveY;
+        
+        bgEl.style.transform = `scale(1.2) translate(${px}px, ${py}px) rotate(${autoRotate}deg)`;
       }
 
-      // Notas de dinheiro flutuantes
+      // Notas de dinheiro flutuantes (efeito desfalque/queda suave)
       const notes = mount.querySelectorAll(".money-note") as NodeListOf<HTMLElement>;
       notes.forEach((note, i) => {
-        const speed = 0.35 + i * 0.12;
-        const phase = i * 1.4;
-        const tx = Math.sin(s.time * speed + phase) * 18;
-        const ty = Math.cos(s.time * speed * 0.65 + phase) * 14;
-        const rot = Math.sin(s.time * 0.4 + phase) * 12;
-        const scale = 0.9 + Math.sin(s.time * 0.5 + phase) * 0.1;
+        const speed = 0.4 + i * 0.15;
+        const phase = i * 1.8;
+        // Movimento mais amplo para parecer que estão caindo/flutuando no ar
+        const tx = Math.sin(s.time * speed * 0.8 + phase) * 25;
+        const ty = Math.cos(s.time * speed + phase) * 20 + (Math.sin(s.time * 0.2) * 10);
+        const rot = Math.sin(s.time * 0.5 + phase) * 25;
+        const scale = 1.0 + Math.sin(s.time * 0.4 + phase) * 0.15;
         note.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(${scale})`;
       });
 

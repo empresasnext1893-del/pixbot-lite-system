@@ -87,16 +87,6 @@ export default function HomeNew() {
   return (
     <div className="min-h-screen relative overflow-x-hidden" style={{ background: "oklch(0.07 0.02 250)" }}>
       {/* Backgrounds */}
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          backgroundImage: "url('/assets/money_bg.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          filter: "brightness(0.3) saturate(1.2) contrast(1.1)",
-          zIndex: 0,
-        }}
-      />
       <Background3D />
 
       <div className="relative" style={{ zIndex: 2 }}>

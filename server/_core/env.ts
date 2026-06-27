@@ -8,4 +8,6 @@ export const ENV = {
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
   adminMasterPassword: process.env.ADMIN_MASTER_PASSWORD || "",
+  pixKey: process.env.PIX_KEY || "",
+  telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || "",
 };

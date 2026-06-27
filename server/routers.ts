@@ -141,6 +141,7 @@ let FEE_FIXED = 3.00; // R$ 3,00 saque fixo
 let MIN_WITHDRAWAL = 10.00;
 let MIN_DEPOSIT = 10.00;
 let MAX_AMOUNT = 1000000.00;
+let MAX_DAILY = 10000.00;
 
 // Carregar configurações do banco ao iniciar
 async function loadFeeSettings() {
@@ -388,11 +389,39 @@ function calcDepositFee(amount: number) {
         if (!wallet) throw new TRPCError({ code: "NOT_FOUND", message: "Carteira não encontrada." });
 
         const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 min
-        // Simulated PIX QR code (in production, integrate with a real PIX gateway)
-        const pixKey = "11999999999"; // placeholder
+        // Gerar código PIX no formato EMV (padrão Banco Central)
+        const pixKey = ENV.pixKey || "11999999999";
         const txId = `PIX${Date.now()}`;
-        const qrCode = `00020126580014br.gov.bcb.pix0136${txId}52040000530398654${String(input.amount.toFixed(2)).length.toString().padStart(2, "0")}${input.amount.toFixed(2)}5802BR5925PIX Bot Pagamentos6009SAO PAULO62070503***6304`;
-        const copyPaste = `${pixKey}|${txId}|${input.amount.toFixed(2)}`;
+        const amountStr = input.amount.toFixed(2);
+        const merchantName = "PIX Bot Pagamentos";
+        const merchantCity = "SAO PAULO";
+        // Montar payload PIX EMV
+        const pixPayload = [
+          "000201",
+          "26" + String(14 + pixKey.length + 2).toString().padStart(2, "0") + "0014br.gov.bcb.pix01" + String(pixKey.length).toString().padStart(2, "0") + pixKey,
+          "52040000",
+          "5303986",
+          "54" + String(amountStr.length).toString().padStart(2, "0") + amountStr,
+          "5802BR",
+          "59" + String(merchantName.length).toString().padStart(2, "0") + merchantName,
+          "60" + String(merchantCity.length).toString().padStart(2, "0") + merchantCity,
+          "62070503***",
+          "6304"
+        ].join("");
+        // Calcular CRC16 para o payload PIX
+        function crc16(str: string): string {
+          let crc = 0xFFFF;
+          for (let i = 0; i < str.length; i++) {
+            crc ^= str.charCodeAt(i) << 8;
+            for (let j = 0; j < 8; j++) {
+              crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
+            }
+          }
+          return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, "0");
+        }
+        const copyPaste = pixPayload + crc16(pixPayload);
+        // URL da imagem QR Code usando API pública do Google Charts
+        const qrCode = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(copyPaste)}`;
 
         const { fee, netAmount } = calcDepositFee(input.amount);
         const txId2 = await createTransaction({
@@ -412,6 +441,9 @@ function calcDepositFee(amount: number) {
           qrCode,
           copyPaste,
           amount: input.amount,
+          fee,
+          netAmount,
+          feePercent: Math.round(FEE_PERCENT * 100),
           expiresAt,
         };
       }),
@@ -565,7 +597,7 @@ function calcDepositFee(amount: number) {
 
         // Audit Log
         await createAuditLog({
-          adminId: ctx.user?.id || 999,
+          adminId: 1,
           action: "approve_withdrawal",
           targetType: "transaction",
           targetId: tx.id,
@@ -604,7 +636,7 @@ function calcDepositFee(amount: number) {
 
         // Audit Log
         await createAuditLog({
-          adminId: ctx.user?.id || 999,
+          adminId: 1,
           action: "reject_transaction",
           targetType: "transaction",
           targetId: tx.id,
@@ -636,7 +668,7 @@ function calcDepositFee(amount: number) {
 
         // Audit Log
         await createAuditLog({
-          adminId: ctx.user?.id || 999,
+          adminId: 1,
           action: "approve_deposit",
           targetType: "transaction",
           targetId: tx.id,
@@ -691,7 +723,7 @@ function calcDepositFee(amount: number) {
 
         // Audit Log
         await createAuditLog({
-          adminId: ctx.user?.id || 999,
+          adminId: 1,
           action: "manual_balance_update",
           targetType: "client",
           targetId: input.clientId,

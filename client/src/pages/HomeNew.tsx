@@ -369,7 +369,7 @@ export default function HomeNew() {
                       <TrendingUp className="w-3 h-3 text-yellow-500" />
                       <p className="text-[9px] text-muted-foreground uppercase font-bold">Depósito</p>
                     </div>
-                    <p className="text-xl font-black text-primary">20%</p>
+                    <p className="text-xl font-black text-primary">{(account as any)?.customDepositFeePercent || "20"}%</p>
                     <p className="text-[8px] text-muted-foreground mt-1">Taxa automática</p>
                   </div>
                   <div className="glass p-4 rounded-2xl border-white/10">
@@ -377,7 +377,7 @@ export default function HomeNew() {
                       <DollarSign className="w-3 h-3 text-white" />
                       <p className="text-[9px] text-muted-foreground uppercase font-bold">Saque</p>
                     </div>
-                    <p className="text-xl font-black text-white">R$ 3,00</p>
+                    <p className="text-xl font-black text-white">R$ {((account as any)?.customWithdrawalFeeFixed ?? 3.00).toFixed(2).replace(".", ",")}</p>
                     <p className="text-[8px] text-muted-foreground mt-1">Valor fixo</p>
                   </div>
                 </div>
@@ -393,11 +393,11 @@ export default function HomeNew() {
                   <div className="space-y-2">
                     <div className="flex justify-between items-center text-[10px] p-2 rounded-lg bg-white/5">
                       <span className="text-muted-foreground">Depósito Mínimo</span>
-                      <span className="font-bold text-foreground">R$ 10,00</span>
+                      <span className="font-bold text-foreground">R$ {((account as any)?.customMinDeposit ?? 10).toFixed(2).replace(".", ",")}</span>
                     </div>
                     <div className="flex justify-between items-center text-[10px] p-2 rounded-lg bg-white/5">
                       <span className="text-muted-foreground">Saque Mínimo</span>
-                      <span className="font-bold text-foreground">R$ 10,00</span>
+                      <span className="font-bold text-foreground">R$ {((account as any)?.customMinWithdrawal ?? 10).toFixed(2).replace(".", ",")}</span>
                     </div>
                     <div className="flex justify-between items-center text-[10px] p-2 rounded-lg bg-white/5">
                       <span className="text-muted-foreground">Limite por Operação</span>

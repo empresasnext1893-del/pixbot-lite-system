@@ -52,7 +52,7 @@ function MoneyBackground() {
           backgroundImage: "url('/assets/money_bg.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "brightness(0.25) saturate(1.1) contrast(1.1)",
+          filter: "brightness(0.45) saturate(1.4) contrast(1.2)",
         }}
       />
 
@@ -74,8 +74,8 @@ function MoneyBackground() {
           backgroundImage: "url('/assets/money_bg.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          filter: "brightness(0.35) saturate(1.2) blur(2px)",
-          opacity: 0.6,
+          filter: "brightness(0.55) saturate(1.5) blur(2px)",
+          opacity: 0.7,
         }}
       />
 

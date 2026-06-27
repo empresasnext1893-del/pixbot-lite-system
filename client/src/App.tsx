@@ -8,7 +8,6 @@ import Home from "./pages/HomeNew";
 import Admin from "./pages/AdminNew";
 import AdminLogin from "./pages/AdminLogin";
 import AuthPage from "./pages/AuthPage";
-import WalletPage from "./pages/WalletPage";
 
 // Páginas do Bot Telegram (adicionadas)
 import Pix from "./pages/Pix";
@@ -23,7 +22,7 @@ function Router() {
       {/* Rotas Originais Preservadas */}
       <Route path="/" component={Home} />
       <Route path="/auth" component={AuthPage} />
-      <Route path="/wallet" component={WalletPage} />
+      <Route path="/wallet" component={Home} />
       <Route path="/admin-login" component={AdminLogin} />
       <Route path="/admin" component={Admin} />
       

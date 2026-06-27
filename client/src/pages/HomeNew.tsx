@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { useClientAuth } from "@/hooks/useClientAuth";
 import { useLocation } from "wouter";
 
-type Tab = "home" | "history" | "referral" | "wallet" | "support";
+type Tab = "home" | "history" | "referral" | "support";
 
 function fmt(val: string | number) {
   return `R$ ${Number(parseFloat(String(val)) || 0).toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
@@ -307,18 +307,7 @@ export default function HomeNew() {
             </motion.div>
           )}
 
-          {tab === "wallet" && (
-            <motion.div key="wallet" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="container max-w-md mx-auto py-6 px-4 pb-24 space-y-5 text-center">
-              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <Wallet className="w-10 h-10 text-primary" />
-              </div>
-              <h2 className="text-xl font-bold text-foreground">Minha Carteira</h2>
-              <p className="text-xs text-muted-foreground mt-2 mb-6">Gerencie seus saldos, depósitos e saques.</p>
-              <Button onClick={() => navigate("/wallet")} className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold text-sm shadow-lg shadow-primary/20">
-                Acessar Carteira Completa
-              </Button>
-            </motion.div>
-          )}
+
 
           {tab === "support" && (
             <motion.div key="support" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="container max-w-md mx-auto py-6 px-4 pb-24 space-y-5">
@@ -417,11 +406,10 @@ export default function HomeNew() {
         {/* Bottom Nav */}
         <nav className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 w-full max-w-sm">
           <div className="glass rounded-[1.5rem] p-1.5 flex items-center shadow-2xl border border-white/10 bg-black/40 backdrop-blur-xl">
-            {[ 
+            {[
               { id: "home", icon: HomeIcon, label: "Início" }, 
               { id: "history", icon: History, label: "Extrato" },
               { id: "referral", icon: Gift, label: "Convite" }, 
-              { id: "wallet", icon: Wallet, label: "Carteira" },
               { id: "support", icon: MessageCircle, label: "Suporte" } 
             ].map((item) => (
               <button key={item.id} onClick={() => setTab(item.id as Tab)} className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 rounded-xl transition-all duration-300 ${tab === item.id ? "bg-primary text-white shadow-md shadow-primary/20" : "text-muted-foreground hover:text-foreground"}`}>

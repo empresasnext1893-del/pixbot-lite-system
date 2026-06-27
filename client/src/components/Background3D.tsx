@@ -32,7 +32,7 @@ export default function Background3D() {
       s.mouseX += (s.targetX - s.mouseX) * 0.035;
       s.mouseY += (s.targetY - s.mouseY) * 0.035;
 
-      // Paralaxe + flutuação na imagem de fundo
+      // Paralaxe + flutuação na imagem de fundo + Desfoque Dinâmico (Realce)
       const bgEl = mount.querySelector(".bg-image") as HTMLElement | null;
       if (bgEl) {
         // No mobile, o mouseX/Y será 0, então a animação de seno/cosseno garante o movimento
@@ -40,10 +40,15 @@ export default function Background3D() {
         const autoMoveY = Math.cos(s.time * 0.2) * 10;
         const autoRotate = Math.sin(s.time * 0.15) * 1.5;
         
+        // Efeito de desfoque pulsante (Realce) - vai de 0px (nítido) até 4px (desfocado)
+        const blurAmount = (Math.sin(s.time * 0.5) + 1) * 2; // oscila entre 0 e 4
+        const brightness = 0.25 + (Math.sin(s.time * 0.5) + 1) * 0.05; // oscila levemente o brilho
+        
         const px = s.mouseX * 25 + autoMoveX;
         const py = s.mouseY * 18 + autoMoveY;
         
         bgEl.style.transform = `scale(1.2) translate(${px}px, ${py}px) rotate(${autoRotate}deg)`;
+        bgEl.style.filter = `brightness(${brightness}) saturate(1.2) blur(${blurAmount}px)`;
       }
 
       // Notas de dinheiro flutuantes (efeito desfalque/queda suave)

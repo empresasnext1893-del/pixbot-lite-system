@@ -339,10 +339,10 @@ export default function HomeNew() {
                   </p>
                   <div className="grid grid-cols-1 gap-2.5">
                     {[
-                      { title: "Zero Contestação", desc: "Sistema imune a estornos indevidos" },
-                      { title: "Proteção Anti-MED", desc: "Blindagem contra bloqueios automáticos" },
-                      { title: "Liquidez Instantânea", desc: "Valores disponíveis em segundos" }
-                    ].map((item, i) => (
+	                      { title: "Zero Contestação", desc: "Nossa tecnologia exclusiva bloqueia qualquer tentativa de estorno indevido, garantindo que o dinheiro que entra na sua conta seja seu de forma definitiva." },
+	                      { title: "Proteção Anti-MED", desc: "Implementamos uma camada de blindagem contra o Mecanismo Especial de Devolução (MED), protegendo sua operação de bloqueios bancários automáticos." },
+	                      { title: "Liquidez Imediata", desc: "Trabalhamos com processamento em tempo real. Uma vez confirmada a transação, o saldo é liberado instantaneamente para movimentação ou saque." }
+	                    ].map((item, i) => (
                       <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
                         <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
                         <div>
@@ -392,10 +392,10 @@ export default function HomeNew() {
                   </div>
                   <div className="space-y-3">
                     {[
-                      { label: "Depósito Mínimo", value: `R$ ${Number((account as any)?.customMinDeposit ?? (account as any)?.globalSettings?.minDeposit ?? 10).toFixed(2).replace(".", ",")}` },
-                      { label: "Saque Mínimo", value: `R$ ${Number((account as any)?.customMinWithdrawal ?? (account as any)?.globalSettings?.minWithdrawal ?? 10).toFixed(2).replace(".", ",")}` },
-                      { label: "Limite Operacional", value: "R$ 1.000.000,00" }
-                    ].map((row, i) => (
+	                      { label: "Depósito Mínimo", value: `R$ ${Number((account as any)?.customMinDeposit ?? (account as any)?.globalSettings?.minDeposit ?? 10).toFixed(2).replace(".", ",")}` },
+	                      { label: "Saque Mínimo", value: `R$ ${Number((account as any)?.customMinWithdrawal ?? (account as any)?.globalSettings?.minWithdrawal ?? 10).toFixed(2).replace(".", ",")}` },
+	                      { label: "Limite Operacional", value: "R$ 50.000,00" }
+	                    ].map((row, i) => (
                       <div key={i} className="flex justify-between items-center p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.05]">
                         <span className="text-[11px] font-bold text-muted-foreground">{row.label}</span>
                         <span className="text-[12px] font-black text-foreground">{row.value}</span>

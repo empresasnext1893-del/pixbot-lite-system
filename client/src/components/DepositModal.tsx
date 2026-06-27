@@ -74,8 +74,8 @@ export default function DepositModal({ isOpen, onClose, telegramId, telegramName
       toast.error("Informe um valor válido");
       return;
     }
-    if (val > 1000000) {
-      toast.error("Valor máximo por operação é R$ 1.000.000,00");
+    if (val > 50000) {
+      toast.error("Valor máximo por operação é R$ 50.000,00");
       return;
     }
     initDeposit.mutate({ amount: val });

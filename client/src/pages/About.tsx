@@ -21,20 +21,29 @@ export default function About() {
               <h3 className="text-xl font-bold text-white">Segurança Total</h3>
             </div>
             <p className="text-sm leading-relaxed" style={{ color: "var(--wallet-text-secondary)" }}>
-              Nossa plataforma foi desenvolvida com foco em **blindagem transacional**. Utilizamos tecnologia de ponta para garantir que todas as operações sejam definitivas.
+              Nossa plataforma foi desenvolvida com foco em <strong>blindagem transacional total</strong>. Utilizamos tecnologia de ponta para garantir que todas as operações sejam definitivas, seguras e irreversíveis — protegendo você e seu negócio em cada transação.
             </p>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-2 text-sm">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                <span className="text-white">**Zero Contestação:** Sistema imune a estornos indevidos.</span>
+            <ul className="space-y-4">
+              <li className="flex items-start gap-3 text-sm">
+                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
+                <div>
+                  <span className="font-bold text-white block mb-1">Zero Contestação</span>
+                  <span style={{ color: "var(--wallet-text-secondary)" }} className="text-xs leading-relaxed">Todas as transações realizadas em nossa plataforma são <strong className="text-white">definitivas e irrevogáveis</strong>. Nosso sistema é completamente imune a estornos, chargebacks e contestações indevidas — garantindo que o valor recebido permaneça em sua carteira sem qualquer risco de reversão.</span>
+                </div>
               </li>
-              <li className="flex items-start gap-2 text-sm">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                <span className="text-white">**Zero MED (Mecanismo Especial de Devolução):** Proteção avançada contra bloqueios e devoluções automáticas.</span>
+              <li className="flex items-start gap-3 text-sm">
+                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
+                <div>
+                  <span className="font-bold text-white block mb-1">Zero MED (Mecanismo Especial de Devolução)</span>
+                  <span style={{ color: "var(--wallet-text-secondary)" }} className="text-xs leading-relaxed">Nossa infraestrutura oferece <strong className="text-white">proteção avançada contra bloqueios e devoluções automáticas</strong> do Banco Central. O MED não se aplica às operações realizadas aqui, eliminando o risco de devolução compulsória de valores e garantindo total controle sobre seus recursos.</span>
+                </div>
               </li>
-              <li className="flex items-start gap-2 text-sm">
-                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                <span className="text-white">**Liquidez Imediata:** Seus valores ficam disponíveis para movimentação assim que confirmados.</span>
+              <li className="flex items-start gap-3 text-sm">
+                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
+                <div>
+                  <span className="font-bold text-white block mb-1">Liquidez Imediata</span>
+                  <span style={{ color: "var(--wallet-text-secondary)" }} className="text-xs leading-relaxed">Assim que um depósito é confirmado, o saldo fica <strong className="text-white">instantaneamente disponível</strong> para movimentação, saque ou reinvestimento. Sem períodos de carência, sem bloqueios operacionais — seu dinheiro disponível quando você precisar, 24 horas por dia, 7 dias por semana.</span>
+                </div>
               </li>
             </ul>
           </div>
@@ -80,7 +89,7 @@ export default function About() {
               </div>
               <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex justify-between items-center">
                 <span className="text-sm" style={{ color: "var(--wallet-text-secondary)" }}>Limite por Operação</span>
-                <span className="font-bold text-white">R$ 1.000.000,00</span>
+                <span className="font-bold text-white">R$ 50.000,00</span>
               </div>
             </div>
             <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 flex items-start gap-2">
@@ -153,7 +162,7 @@ function FAQSection() {
     },
     {
       question: "Qual é o limite por transação?",
-      answer: "O limite padrão por transação é de R$ 1.000.000,00. Esse limite garante a segurança das operações de alto volume. Entre em contato com nosso suporte técnico para mais informações.",
+      answer: "O limite padrão por transação é de R$ 50.000,00. Esse limite garante a segurança e a agilidade das operações. Entre em contato com nosso suporte técnico para mais informações sobre upgrade de limite.",
     },
     {
       question: "Como vinculo minha conta ao Telegram?",

@@ -97,6 +97,43 @@ function MoneyBackground() {
       
       {/* Overlay de Vinheta - Quase imperceptível para manter a imagem limpa */}
       <div className="absolute inset-0 shadow-[inset_0_0_80px_rgba(0,0,0,0.3)]" />
+
+      {/* Chuva de imagens reais do dinheiro */}
+      <MoneyRain />
+    </div>
+  );
+}
+
+function MoneyRain() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {[...Array(10)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ y: -100, x: Math.random() * 100 + "%", rotate: Math.random() * 360 }}
+          animate={{
+            y: ["0vh", "110vh"],
+            x: [
+              (i * 10) + "%", 
+              (i * 10 + (Math.random() * 10 - 5)) + "%"
+            ],
+            rotate: [0, 360 + Math.random() * 360],
+          }}
+          transition={{
+            duration: 8 + Math.random() * 10,
+            repeat: Infinity,
+            ease: "linear",
+            delay: i * 1.5,
+          }}
+          className="absolute w-20 h-11 rounded-lg border border-white/20 shadow-xl overflow-hidden"
+          style={{
+            backgroundImage: "url('/assets/money_bg.png')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            opacity: 0.4,
+          }}
+        />
+      ))}
     </div>
   );
 }

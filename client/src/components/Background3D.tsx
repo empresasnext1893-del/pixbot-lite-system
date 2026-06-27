@@ -50,17 +50,23 @@ export default function Background3D() {
         bgEl.style.filter = `brightness(${brightness}) saturate(1.4) contrast(1.15)`;
       }
 
-      // Notas de dinheiro flutuantes (efeito desfalque/queda suave)
+      // Chuva de dinheiro com imagens reais (efeito desfalque/queda)
       const notes = mount.querySelectorAll(".money-note") as NodeListOf<HTMLElement>;
       notes.forEach((note, i) => {
-        const speed = 0.4 + i * 0.15;
-        const phase = i * 1.8;
-        // Movimento mais amplo para parecer que estão caindo/flutuando no ar
-        const tx = Math.sin(s.time * speed * 0.8 + phase) * 25;
-        const ty = Math.cos(s.time * speed + phase) * 20 + (Math.sin(s.time * 0.2) * 10);
-        const rot = Math.sin(s.time * 0.5 + phase) * 25;
-        const scale = 1.0 + Math.sin(s.time * 0.4 + phase) * 0.15;
+        const speed = 0.25 + (i % 3) * 0.15;
+        const phase = i * 2.5;
+        
+        // Simula queda contínua
+        const fallTime = (s.time * speed + phase) % 10;
+        const progress = fallTime / 10;
+        
+        const ty = progress * (window.innerHeight + 200) - 100;
+        const tx = Math.sin(s.time * 0.5 + phase) * 50;
+        const rot = s.time * 20 + (i * 45);
+        const scale = 0.8 + Math.sin(s.time * 0.3 + phase) * 0.2;
+        
         note.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg) scale(${scale})`;
+        note.style.opacity = progress < 0.1 ? String(progress * 10 * 0.6) : progress > 0.9 ? String((1 - progress) * 10 * 0.6) : "0.6";
       });
 
       // Partículas de brilho
@@ -137,23 +143,23 @@ export default function Background3D() {
 
       {/* Removido brilho azul excessivo para não tampar a imagem */}
 
-      {/* Notas de dinheiro flutuantes decorativas */}
-      {notePositions.map((pos, i) => (
+      {/* Chuva de imagens reais do dinheiro */}
+      {[...Array(12)].map((_, i) => (
         <div
           key={i}
-          className="money-note absolute will-change-transform select-none"
+          className="money-note absolute will-change-transform select-none overflow-hidden rounded-lg border border-white/20 shadow-2xl"
           style={{
-            left: pos.left,
-            top: pos.top,
-            opacity: pos.opacity,
-            fontSize: `${pos.size}px`,
-            filter: "blur(0.3px) drop-shadow(0 0 8px oklch(0.65 0.18 80 / 0.6))",
+            left: `${(i * 15) % 90 + 5}%`,
+            top: "-100px",
+            width: "80px",
+            height: "45px",
+            backgroundImage: `url(${MONEY_BG_URL})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
             pointerEvents: "none",
             zIndex: 1,
           }}
-        >
-          💵
-        </div>
+        />
       ))}
 
       {/* Partículas de brilho */}

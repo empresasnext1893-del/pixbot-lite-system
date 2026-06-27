@@ -95,8 +95,11 @@ export default function AdminNew() {
   const [clientBalanceReason, setClientBalanceReason] = useState("");
   const [selectedClientForBalance, setSelectedClientForBalance] = useState<number | null>(null);
 
-  const adminSessionQuery = trpc.adminAuth.checkAdminSession.useQuery();
-  const isAdmin = (isAuthenticated && user?.role === "admin") || adminSessionQuery.data === true;
+  const adminSessionQuery = trpc.adminAuth.checkAdminSession.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: true
+  });
+  const isAdmin = adminSessionQuery.data === true;
 
   // Queries
   const statsQuery = trpc.admin.advancedStats.useQuery(undefined, { enabled: isAdmin, refetchInterval: 30_000 });
@@ -116,6 +119,12 @@ export default function AdminNew() {
   const chartDataQuery = trpc.admin.chartData.useQuery({ days: 30 }, { enabled: isAdmin, refetchInterval: 60_000 });
 
   const utils = trpc.useUtils();
+
+  useEffect(() => {
+    if (adminSessionQuery.isFetched && !isAdmin) {
+      navigate("/admin-login");
+    }
+  }, [adminSessionQuery.isFetched, isAdmin, navigate]);
 
   // Mutations
   const adminDepositMutation = trpc.admin.adminDeposit.useMutation({
@@ -217,7 +226,7 @@ export default function AdminNew() {
   const [editMinWithdrawal, setEditMinWithdrawal] = useState("");
   const [editMaxDaily, setEditMaxDaily] = useState("");
 
-  if (loading) {
+  if (loading || adminSessionQuery.isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "oklch(0.07 0.02 250)" }}>
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

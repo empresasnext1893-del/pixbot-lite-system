@@ -20,8 +20,28 @@ export async function createContext(
     user = null;
   }
 
-  // Injeção de admin removida por segurança. 
-  // O acesso deve ser feito apenas via sessão válida.
+  // Se não houver usuário OAuth, verificamos se há uma sessão de Admin por senha mestra
+  if (!user) {
+    const ADMIN_COOKIE = "pix_admin_session";
+    const token = opts.req.cookies?.[ADMIN_COOKIE];
+    if (token) {
+      // Importação dinâmica para evitar dependência circular ou carregar desnecessariamente
+      const { verifyAdminJwt } = await import("../routers");
+      const isAdmin = await verifyAdminJwt(token);
+      if (isAdmin) {
+        user = {
+          id: 999,
+          openId: "admin-session",
+          name: "Administrador",
+          email: "admin@sistema.com",
+          role: "admin",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          lastSignedIn: new Date(),
+        } as any;
+      }
+    }
+  }
 
   return {
     req: opts.req,

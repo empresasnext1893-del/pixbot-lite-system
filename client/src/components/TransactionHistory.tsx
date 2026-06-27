@@ -113,11 +113,11 @@ export default function TransactionHistory({ transactions, isLoading }: Transact
             {/* Valores */}
             <div className="text-right shrink-0">
               <p className={`text-sm font-bold ${isDeposit ? "text-success" : "text-destructive"}`}>
-                {isDeposit ? "+" : "-"}R$ {amount.toFixed(2).replace(".", ",")}
+                {isDeposit ? "+" : "-"}R$ {Number(amount).toFixed(2).replace(".", ",")}
               </p>
               {fee > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  Taxa: R$ {fee.toFixed(2).replace(".", ",")}
+                  Taxa: R$ {Number(fee).toFixed(2).replace(".", ",")}
                 </p>
               )}
             </div>

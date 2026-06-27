@@ -224,7 +224,7 @@ export default function DepositModal({ isOpen, onClose, telegramId, telegramName
                       style={{ background: "oklch(0.18 0.05 145 / 0.3)", border: "1px solid oklch(0.40 0.12 145 / 0.3)" }}
                     >
                       <p className="text-xs text-muted-foreground">Valor a pagar</p>
-                      <p className="text-2xl font-bold text-success">R$ {depositData.amount.toFixed(2).replace(".", ",")}</p>
+                      <p className="text-2xl font-bold text-success">R$ {Number(depositData.amount).toFixed(2).replace(".", ",")}</p>
                     </div>
 
                     {/* QR Code */}
@@ -304,7 +304,7 @@ export default function DepositModal({ isOpen, onClose, telegramId, telegramName
                     <div>
                       <h3 className="text-xl font-bold text-foreground">Pagamento Confirmado!</h3>
                       <p className="text-muted-foreground text-sm mt-1">
-                        R$ {depositData?.amount.toFixed(2).replace(".", ",")} adicionado à sua carteira
+                        R$ {Number(depositData?.amount).toFixed(2).replace(".", ",")} adicionado à sua carteira
                       </p>
                     </div>
                     <p className="text-xs text-muted-foreground">Fechando em instantes...</p>

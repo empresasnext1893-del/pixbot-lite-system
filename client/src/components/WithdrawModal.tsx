@@ -66,9 +66,9 @@ export default function WithdrawModal({ isOpen, onClose, telegramId, balance, on
 
   const handleAmountNext = () => {
     const minWithdrawal = (account as any)?.customMinWithdrawal ?? 10;
-    if (grossAmount < minWithdrawal) { toast.error(`Valor mínimo para saque é R$ ${minWithdrawal.toFixed(2).replace(".", ",")}`); return; }
+    if (grossAmount < minWithdrawal) { toast.error(`Valor mínimo para saque é R$ ${Number(minWithdrawal).toFixed(2).replace(".", ",")}`); return; }
     if (grossAmount > 1000000) { toast.error("Valor máximo por operação é R$ 1.000.000,00"); return; }
-    if (grossAmount > balance) { toast.error(`Saldo insuficiente. Disponível: R$ ${balance.toFixed(2)}`); return; }
+    if (grossAmount > balance) { toast.error(`Saldo insuficiente. Disponível: R$ ${Number(balance).toFixed(2).replace(".", ",")}`); return; }
     if (netAmount <= 0) { toast.error("Valor muito baixo após a taxa"); return; }
     setStep("pixkey");
   };
@@ -184,16 +184,16 @@ export default function WithdrawModal({ isOpen, onClose, telegramId, balance, on
                       >
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Valor bruto</span>
-                          <span className="text-foreground font-medium">R$ {grossAmount.toFixed(2).replace(".", ",")}</span>
+                          <span className="text-foreground font-medium">R$ {Number(grossAmount).toFixed(2).replace(".", ",")}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Taxa Fixa</span>
-                          <span className="text-destructive font-medium">- R$ {fee.toFixed(2).replace(".", ",")}</span>
+                          <span className="text-destructive font-medium">- R$ {Number(fee).toFixed(2).replace(".", ",")}</span>
                         </div>
                         <div className="h-px bg-border/50" />
                         <div className="flex justify-between text-sm">
                           <span className="text-foreground font-semibold">Você recebe</span>
-                          <span className="text-success font-bold">R$ {netAmount > 0 ? netAmount.toFixed(2).replace(".", ",") : "0,00"}</span>
+                          <span className="text-success font-bold">R$ {netAmount > 0 ? Number(netAmount).toFixed(2).replace(".", ",") : "0,00"}</span>
                         </div>
                       </motion.div>
                     )}
@@ -227,7 +227,7 @@ export default function WithdrawModal({ isOpen, onClose, telegramId, balance, on
                     >
                       <Key className="w-4 h-4 text-primary" />
                       <p className="text-sm text-muted-foreground">
-                        Informe a chave PIX para receber <span className="text-success font-semibold">R$ {netAmount.toFixed(2).replace(".", ",")}</span>
+                        Informe a chave PIX para receber <span className="text-success font-semibold">R$ {Number(netAmount).toFixed(2).replace(".", ",")}</span>
                       </p>
                     </div>
 
@@ -296,16 +296,16 @@ export default function WithdrawModal({ isOpen, onClose, telegramId, balance, on
                     >
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Valor solicitado</span>
-                        <span className="text-foreground font-medium">R$ {grossAmount.toFixed(2).replace(".", ",")}</span>
+                        <span className="text-foreground font-medium">R$ {Number(grossAmount).toFixed(2).replace(".", ",")}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Taxa Fixa</span>
-                        <span className="text-destructive font-medium">- R$ {fee.toFixed(2).replace(".", ",")}</span>
+                        <span className="text-destructive font-medium">- R$ {Number(fee).toFixed(2).replace(".", ",")}</span>
                       </div>
                       <div className="h-px bg-border/50" />
                       <div className="flex justify-between">
                         <span className="text-foreground font-semibold">Você recebe</span>
-                        <span className="text-success font-bold text-lg">R$ {netAmount.toFixed(2).replace(".", ",")}</span>
+                        <span className="text-success font-bold text-lg">R$ {Number(netAmount).toFixed(2).replace(".", ",")}</span>
                       </div>
                       <div className="h-px bg-border/50" />
                       <div className="flex justify-between text-sm">
@@ -362,7 +362,7 @@ export default function WithdrawModal({ isOpen, onClose, telegramId, balance, on
                     <div>
                       <h3 className="text-xl font-bold text-foreground">Saque Solicitado!</h3>
                       <p className="text-muted-foreground text-sm mt-1">
-                        R$ {withdrawResult.netAmount.toFixed(2).replace(".", ",")} sendo enviado para sua chave PIX
+                        R$ {Number(withdrawResult.netAmount).toFixed(2).replace(".", ",")} sendo enviado para sua chave PIX
                       </p>
                     </div>
                     <div

@@ -365,6 +365,14 @@ function calcDepositFee(amount: number, clientAccount?: typeof clientAccounts.$i
         customMinDeposit: client.customMinDeposit,
         customMinWithdrawal: client.customMinWithdrawal,
         customMaxDaily: client.customMaxDaily,
+        // Global settings for fallback
+        globalSettings: {
+          depositFeePercent: FEE_PERCENT * 100,
+          withdrawalFeeFixed: FEE_FIXED,
+          minDeposit: MIN_DEPOSIT,
+          minWithdrawal: MIN_WITHDRAWAL,
+          maxDaily: MAX_DAILY,
+        }
       };
     }),
 
@@ -873,11 +881,11 @@ function calcDepositFee(amount: number, clientAccount?: typeof clientAccounts.$i
     updateClientFees: adminProcedure
       .input(z.object({
         clientId: z.number(),
-        customDepositFeePercent: z.number().optional(),
-        customWithdrawalFeeFixed: z.number().optional(),
-        customMinDeposit: z.number().optional(),
-        customMinWithdrawal: z.number().optional(),
-        customMaxDaily: z.number().optional(),
+        customDepositFeePercent: z.number().nullable().optional(),
+        customWithdrawalFeeFixed: z.number().nullable().optional(),
+        customMinDeposit: z.number().nullable().optional(),
+        customMinWithdrawal: z.number().nullable().optional(),
+        customMaxDaily: z.number().nullable().optional(),
       }))
       .mutation(async ({ input }) => {
         const db = await getDb();

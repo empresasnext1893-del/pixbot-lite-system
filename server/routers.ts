@@ -337,6 +337,11 @@ function calcDepositFee(amount: number, clientAccount?: typeof clientAccounts.$i
         email: client.email,
         telegramId: client.telegramId,
         createdAt: client.createdAt,
+        customDepositFeePercent: client.customDepositFeePercent,
+        customWithdrawalFeeFixed: client.customWithdrawalFeeFixed,
+        customMinDeposit: client.customMinDeposit,
+        customMinWithdrawal: client.customMinWithdrawal,
+        customMaxDaily: client.customMaxDaily,
       };
     }),
 

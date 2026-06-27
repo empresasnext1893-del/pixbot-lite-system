@@ -183,11 +183,17 @@ export default function HomeNew() {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="p-4 rounded-2xl glass border-yellow-500/10 flex items-center gap-3">
                       <div className="w-8 h-8 rounded-xl bg-yellow-500/10 flex items-center justify-center shrink-0"><TrendingUp className="w-4 h-4 text-yellow-500" /></div>
-                      <div><p className="text-[8px] text-muted-foreground uppercase font-bold">Depósito</p><p className="text-sm font-black text-foreground">Taxa 20%</p></div>
+                      <div>
+                        <p className="text-[8px] text-muted-foreground uppercase font-bold">Depósito</p>
+                        <p className="text-sm font-black text-foreground">Taxa {(account as any)?.customDepositFeePercent || "20"}%</p>
+                      </div>
                     </div>
                     <div className="p-4 rounded-2xl glass border-yellow-500/10 flex items-center gap-3">
                       <div className="w-8 h-8 rounded-xl bg-yellow-500/10 flex items-center justify-center shrink-0"><DollarSign className="w-4 h-4 text-yellow-500" /></div>
-                      <div><p className="text-[8px] text-muted-foreground uppercase font-bold">Saque</p><p className="text-sm font-black text-foreground">R$ 3,00</p></div>
+                      <div>
+                        <p className="text-[8px] text-muted-foreground uppercase font-bold">Saque</p>
+                        <p className="text-sm font-black text-foreground">R$ {((account as any)?.customWithdrawalFeeFixed ?? 3.00).toFixed(2).replace(".", ",")}</p>
+                      </div>
                     </div>
                   </div>
 
